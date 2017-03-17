@@ -1,0 +1,4 @@
+<?jelly escape-by-default='true'?>
+<div>
+  This plugin allows Code coverage reports to be integrated into Jenkins.
+</div>
