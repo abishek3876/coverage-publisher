@@ -1,17 +1,42 @@
 package org.jenkinsci.plugins.coveragepublisher;
 
-public enum CoverageMetric {
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
-	CLASS("Class"),
-	METHOD("Method"),
-	LINE("Line"),
-	BRANCH("Line"),
-	INSTRUCTION("Instruction"),
-	COMPLEXITY("Complexity");
+@ExportedBean
+public final class CoverageMetric {
 	
-	private String name;
+	@Exported
+	public final int coveredCount;
+	@Exported
+	public final int totalCount;
+	@Exported
+	public final CoverageType coverageType;
 	
-	private CoverageMetric(String name) {
-		this.name = name;
+	public CoverageMetric(CoverageType coverageType, int totalCount, int coveredCount) {
+		this.coverageType = coverageType;
+		this.totalCount = totalCount;
+		this.coveredCount = coveredCount;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o == null || !o.getClass().equals(getClass())) {
+			return false;
+		}
+		
+		CoverageMetric other = (CoverageMetric) o;
+		
+		return (other.coverageType == coverageType) && (other.totalCount == totalCount) && (other.coveredCount == coveredCount);
+	}
+
+	@Override
+	public int hashCode() {
+		int hashCode;
+		hashCode = coverageType.hashCode();
+		hashCode = hashCode * 31 + totalCount;
+		hashCode = hashCode * 31 + coveredCount;
+		
+		return hashCode;
 	}
 }
