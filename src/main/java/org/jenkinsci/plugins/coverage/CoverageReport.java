@@ -1,7 +1,8 @@
-package org.jenkinsci.plugins.coveragepublisher;
+package org.jenkinsci.plugins.coverage;
 
 import javax.annotation.Nonnull;
 
+import org.jenkinsci.plugins.coveragepublisher.Messages;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import hudson.Extension;

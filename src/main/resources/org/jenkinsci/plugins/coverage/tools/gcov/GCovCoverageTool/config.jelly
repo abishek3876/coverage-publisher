@@ -1,0 +1,15 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
+    <f:entry title="${%sourcePattern}">
+        <f:textBox field="sourcePattern"/>
+    </f:entry>
+    <f:entry title="${%classPattern}">
+        <f:textBox field="classPattern"/>
+    </f:entry>
+    <f:entry title="${%includePattern}">
+        <f:textBox field="includePattern"/>
+    </f:entry>
+    <f:entry title="${%excludePattern}">
+        <f:textBox field="excludePattern"/>
+    </f:entry>
+</j:jelly>

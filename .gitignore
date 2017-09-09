@@ -12,3 +12,8 @@ buildNumber.properties
 .project
 .settings/
 work/
+
+.gradle/
+.idea/
+build/
+*.iml

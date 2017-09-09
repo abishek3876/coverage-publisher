@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.coveragepublisher.tools;
+package org.jenkinsci.plugins.coverage.tools;
 
 public interface SourceCoverageInfo {
 	

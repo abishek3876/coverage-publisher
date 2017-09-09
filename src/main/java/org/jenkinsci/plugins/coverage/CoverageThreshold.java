@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.coveragepublisher;
+package org.jenkinsci.plugins.coverage;
 
 import java.io.Serializable;
 

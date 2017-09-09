@@ -1,14 +1,11 @@
-package org.jenkinsci.plugins.coveragepublisher;
+package org.jenkinsci.plugins.coverage;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.jenkinsci.plugins.coveragepublisher.tools.CoverageTool;
-import org.jenkinsci.plugins.coveragepublisher.tools.SourceCoverageInfo;
+import org.jenkinsci.plugins.coverage.tools.SourceCoverageInfo;
 import org.springframework.web.util.HtmlUtils;
 
 public class SourceFileCoverage {
@@ -26,7 +23,7 @@ public class SourceFileCoverage {
 		this.sourceName = sourceName;
 		this.sourceFile = sourceFile;
 		this.coverageTool = coverageTool;
-		this.sourceCoverageInfo = coverageTool.getCoverageInfoForSource(sourceName, sourceFile);
+		this.sourceCoverageInfo = null;//coverageTool.getCoverageInfoForSource(sourceName, sourceFile);
 	}
 	
 	private void parseSourceFile() throws IOException {
