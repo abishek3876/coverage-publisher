@@ -1,92 +1,90 @@
 package org.jenkinsci.plugins.coverage;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import hudson.EnvVars;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 /**
  * This holds the coverage targets for marking build results and health.
- * @author Abishek_Manoharan
- * @since 1.0
  */
 public class CoverageThreshold implements Serializable {
-	
-	private class ThresholdValues {
-		private final int minThreshold;
-		private final int maxThreshold;
-		
-		private ThresholdValues(int minThreshold, int maxThreshold) {
-			this.minThreshold = getValidThreshold(0, minThreshold, 100);
-			this.maxThreshold = getValidThreshold(minThreshold, maxThreshold, 100);
-		}
-		
-		private int getValidThreshold(int lowerBound, int actual, int upperBound) {
-			if (actual < lowerBound) {
-				return lowerBound;
-			} else if (actual > upperBound) {
-				return upperBound;
-			} else {
-				return actual;
-			}
-		}
-	}
+    private static final float THRESHOLD_DEFAULT = 0;
 
-	@Nullable
-	private ThresholdValues classThreshold;
-	@Nullable
-	private ThresholdValues methodThreshold;
-	@Nullable
-	private ThresholdValues lineThreshold;
-	@Nullable
-	private ThresholdValues branchThreshold;
-	@Nullable
-	private ThresholdValues instructionThreshold;
-	@Nullable
-	private ThresholdValues complexityThreshold;
+    private static class ThresholdValues {
+        private final float minThreshold;
+        private final float maxThreshold;
 
-	@Nonnull
-	@DataBoundSetter
-	private boolean canChangeBuildStatus = true;
-	@Nonnull
-	@DataBoundSetter
-	private boolean canChangeBuildHealth = true;
-	
-	@DataBoundConstructor
-	public CoverageThreshold() {
-	}
-	
-	@DataBoundSetter
-	public void setClassThreshold(int minThreshold, int maxThreshold) {
-		this.classThreshold = new ThresholdValues(minThreshold, maxThreshold);
-	}
+        private ThresholdValues(float minThreshold, float maxThreshold) {
+            this.minThreshold = getValidThreshold(0, minThreshold, 100);
+            this.maxThreshold = getValidThreshold(minThreshold, maxThreshold, 100);
+        }
 
-	@DataBoundSetter
-	public void setMethodThreshold(int minThreshold, int maxThreshold) {
-		this.classThreshold = new ThresholdValues(minThreshold, maxThreshold);
-	}
+        private float getValidThreshold(float lowerBound, float actual, float upperBound) {
+            if (actual < lowerBound) {
+                return lowerBound;
+            } else if (actual > upperBound) {
+                return upperBound;
+            } else {
+                return actual;
+            }
+        }
 
-	@DataBoundSetter
-	public void setLineThreshold(int minThreshold, int maxThreshold) {
-		this.classThreshold = new ThresholdValues(minThreshold, maxThreshold);
-	}
+        @Override
+        public String toString() {
+            return String.format("(%.2f%% - %.2f%%]", minThreshold, maxThreshold);
+        }
+    }
 
-	@DataBoundSetter
-	public void setBranchThreshold(int minThreshold, int maxThreshold) {
-		this.classThreshold = new ThresholdValues(minThreshold, maxThreshold);
-	}
+    @Nonnull
+    private final EnvVars envVars;
 
-	@DataBoundSetter
-	public void setInstructionThreshold(int minThreshold, int maxThreshold) {
-		this.classThreshold = new ThresholdValues(minThreshold, maxThreshold);
-	}
+    @Nonnull
+    private final Map<CoverageType, ThresholdValues> thresholdValuesMap = new HashMap<>();
 
-	@DataBoundSetter
-	public void setComplexityThreshold(int minThreshold, int maxThreshold) {
-		this.classThreshold = new ThresholdValues(minThreshold, maxThreshold);
-	}
+    private static final ThresholdValues DEFAULT_THRESHOLD_VALUES = new ThresholdValues(THRESHOLD_DEFAULT, THRESHOLD_DEFAULT);
 
+    public CoverageThreshold(EnvVars envVars,
+                             String minInstructionThreshold, String maxInstructionThreshold,
+                             String minBranchThreshold, String maxBranchThreshold,
+                             String minLineThreshold, String maxLineThreshold,
+                             String minMethodThreshold, String maxMethodThreshold,
+                             String minClassThreshold, String maxClassThreshold) {
+
+        this.envVars = envVars;
+        thresholdValuesMap.put(CoverageType.INSTRUCTION, getThresholdValues(minInstructionThreshold, maxInstructionThreshold));
+        thresholdValuesMap.put(CoverageType.BRANCH, getThresholdValues(minBranchThreshold, maxBranchThreshold));
+        thresholdValuesMap.put(CoverageType.LINE, getThresholdValues(minLineThreshold, maxLineThreshold));
+        thresholdValuesMap.put(CoverageType.METHOD, getThresholdValues(minMethodThreshold, maxMethodThreshold));
+        thresholdValuesMap.put(CoverageType.CLASS, getThresholdValues(minClassThreshold, maxClassThreshold));
+    }
+
+    private ThresholdValues getThresholdValues(String minThreshold, String maxThreshold) {
+        return new ThresholdValues(getResolvedThreshold(minThreshold), getResolvedThreshold(maxThreshold));
+    }
+
+    private float getResolvedThreshold(String input) {
+        try {
+            String expandedInput = envVars.expand(input);
+            return Float.parseFloat(expandedInput);
+        } catch (NumberFormatException e) {
+            return THRESHOLD_DEFAULT;
+        }
+    }
+
+    public @Nonnull ThresholdValues getThreshold(CoverageType coverageType) {
+        ThresholdValues thresholdValues = thresholdValuesMap.get(coverageType);
+        return (thresholdValues == null)? DEFAULT_THRESHOLD_VALUES : thresholdValues;
+    }
+
+    @Override
+    public String toString() {
+        return thresholdValuesMap.toString();
+    }
 }
