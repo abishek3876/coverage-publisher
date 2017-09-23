@@ -128,7 +128,7 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
         File buildPath = run.getRootDir();
     }
 
-    private void getCoveragePOJO(Map<String, List<PackageCoverage>> buildCoverage) {
+ /*   private void getCoveragePOJO(Map<String, List<PackageCoverage>> buildCoverage) {
         CoveragePOJO coveragePOJO = new CoveragePOJO();
         for (BuildCoverage buildCoverage : buildCoverages) {
             for (PackageCoverage packageCoverage : buildCoverage.getPackages()) {
@@ -142,12 +142,12 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
             }
         }
     }
-
+*/
     private void updatePackagePOJO(CoveragePOJO.PackagePOJO packagePOJO, PackageCoverage packageCoverage) {
         for (ClassCoverage classCoverage : packageCoverage.getClasses()) {
-            packagePOJO.classes.
+            //packagePOJO.classes.
         }
-        packagePOJO.
+       // packagePOJO.
     }
 
     @SuppressWarnings("unused")

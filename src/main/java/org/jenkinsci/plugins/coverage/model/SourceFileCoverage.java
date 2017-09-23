@@ -2,12 +2,8 @@ package org.jenkinsci.plugins.coverage.model;
 
 import hudson.FilePath;
 
-public interface SourceFileCoverage {
-    FilePath getSourceFilePath();
-
-    int getTotalBranchCountForLine(int line);
-    int getCoveredBranchCountForLine(int line);
-    CoverageStatus getCoverageStatusForLine(int line);
+public abstract class SourceFileCoverage {
+    public abstract FilePath getSourceFilePath();
 
     enum CoverageStatus {
         FULLY_COVERED,

@@ -10,16 +10,18 @@ import org.jacoco.core.analysis.*;
 import org.jacoco.core.data.ExecutionDataReader;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.SessionInfoStore;
-import org.jacoco.core.tools.ExecFileLoader;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.coverage.CoverageTool;
 import org.jenkinsci.plugins.coverage.Utils;
+import org.jenkinsci.plugins.coverage.model.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class JacocoCoverageTool extends CoverageTool {
 
     @DataBoundConstructor
@@ -46,7 +48,7 @@ public class JacocoCoverageTool extends CoverageTool {
     private IBundleCoverage bundleCoverage;
 
     @Override
-    protected void perform(Run run, FilePath workspace, TaskListener listener) throws Exception {
+    protected List<PackageCoverage> perform(Run run, FilePath workspace, TaskListener listener) throws Exception {
         this.run = run;
         this.workspace = workspace;
         this.listener = listener;
@@ -55,11 +57,79 @@ public class JacocoCoverageTool extends CoverageTool {
         loadExecutionData();
         this.bundleCoverage = analyzeStructure();
         List<FilePath> sourceDirs = Utils.resolveDirectories(sourcePattern, workspace, envVars);
+        return getPackageCoverageList(this.bundleCoverage);
     }
 
-    public void getPackages() {
-        for (IPackageCoverage packageCoverage : bundleCoverage.getPackages()) {
+    private List<PackageCoverage> getPackageCoverageList(IBundleCoverage bundleCoverage) {
+        List<PackageCoverage> packageCoverages = new ArrayList<>();
+        for (final IPackageCoverage packageCoverage : bundleCoverage.getPackages()) {
+            packageCoverages.add(new PackageCoverage() {
+                @Override
+                public String getPackageName() {
+                    return packageCoverage.getName();
+                }
+
+                @Override
+                public List<ClassCoverage> getClasses() {
+                    return getClassCoverageList(packageCoverage);
+                }
+
+                @Override
+                public List<SourceFileCoverage> getSourceFiles() {
+                    return null;
+                }
+            });
         }
+
+        return packageCoverages;
+    }
+
+    private List<ClassCoverage> getClassCoverageList(IPackageCoverage packageCoverage) {
+        List<ClassCoverage> classCoverages = new ArrayList<>();
+        for (final IClassCoverage classCoverage : packageCoverage.getClasses()) {
+            classCoverages.add(new ClassCoverage() {
+                @Override
+                public String getClassName() {
+                    return classCoverage.getName();
+                }
+
+                @Override
+                public String getSourceFileName() {
+                    return classCoverage.getSourceFileName();
+                }
+
+                @Override
+                public List<MethodCoverage> getMethods() {
+                    return getMethodCoverageList(classCoverage);
+                }
+            });
+        }
+        return classCoverages;
+    }
+
+    private List<MethodCoverage> getMethodCoverageList(IClassCoverage classCoverage) {
+        List<MethodCoverage> methodCoverages = new ArrayList<>();
+        for (final IMethodCoverage methodCoverage : classCoverage.getMethods()) {
+            methodCoverages.add(new MethodCoverage() {
+                @Override
+                public String getMethodName() {
+                    return methodCoverage.getName();
+                }
+
+                @Override
+                public Counter getBranchCounter() {
+                    ICounter counter = methodCoverage.getBranchCounter();
+                    return new Counter(counter.getTotalCount(), counter.getCoveredCount());
+                }
+
+                @Override
+                public Counter getLineCounter() {
+                    ICounter counter = methodCoverage.getLineCounter();
+                    return new Counter(counter.getTotalCount(), counter.getCoveredCount());
+                }
+            });
+        }
+        return methodCoverages;
     }
 
     private void loadExecutionData() throws Exception {

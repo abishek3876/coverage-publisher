@@ -19,8 +19,6 @@ public abstract class CoverageTool extends AbstractDescribableImpl<CoverageTool>
 
     protected abstract List<PackageCoverage> perform(Run run, FilePath workspace, TaskListener listener) throws Exception;
 
-    protected abstract int getTotalMethodCount();
-
     /**
      * Returns a readable representation of the tool name and <b>resolved</b> input parameters
      * in the form "ToolName:{parameterName:resolvedValue, parameter2Name:resolvedValue, ...}"

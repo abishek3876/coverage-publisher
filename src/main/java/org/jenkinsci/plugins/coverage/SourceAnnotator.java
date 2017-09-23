@@ -62,10 +62,10 @@ public class SourceAnnotator {
                 String[] lines = outputStream.toString().split("\\r?\\n", -1);
                 StringBuilder sourceHtml = new StringBuilder(TEMPLATE_TABLE_START);
                 for (int i = 0; i < lines.length; i++) {
-                    sourceHtml.append(String.format(TEMPLATE_TABLE_ROW, i,
-                            sourceFileCoverage.getCoveredBranchCountForLine(i),
-                            sourceFileCoverage.getTotalBranchCountForLine(i),
-                            getStyleForCoverageStatus(sourceFileCoverage.getCoverageStatusForLine(i)), lines[i]));
+                    //sourceHtml.append(String.format(TEMPLATE_TABLE_ROW, i,
+                            //sourceFileCoverage.getCoveredBranchCountForLine(i),
+                            //sourceFileCoverage.getTotalBranchCountForLine(i),
+                            //getStyleForCoverageStatus(sourceFileCoverage.getCoverageStatusForLine(i)), lines[i]));
                 }
                 sourceHtml.append(TEMPLATE_TABLE_END);
                 try (FileWriter writer = new FileWriter(file)) {
@@ -78,7 +78,7 @@ public class SourceAnnotator {
         }
     }
 
-    private static String getStyleForCoverageStatus(SourceFileCoverage.CoverageStatus coverageStatus) {
+/*    private static String getStyleForCoverageStatus(SourceFileCoverage.CoverageStatus coverageStatus) {
 	    switch (coverageStatus) {
             case FULLY_COVERED:
                 return TEMPLATE_STYLE_FULL;
@@ -90,7 +90,7 @@ public class SourceAnnotator {
                 return TEMPLATE_STYLE_DEFAULT;
         }
     }
-
+*/
     private static String normalizePackageName(String packageName) {
         if (packageName == null) {
             return "default";

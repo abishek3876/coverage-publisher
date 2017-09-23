@@ -58,7 +58,6 @@ public class CoverageThreshold implements Serializable {
                              String minClassThreshold, String maxClassThreshold) {
 
         this.envVars = envVars;
-        thresholdValuesMap.put(CoverageType.INSTRUCTION, getThresholdValues(minInstructionThreshold, maxInstructionThreshold));
         thresholdValuesMap.put(CoverageType.BRANCH, getThresholdValues(minBranchThreshold, maxBranchThreshold));
         thresholdValuesMap.put(CoverageType.LINE, getThresholdValues(minLineThreshold, maxLineThreshold));
         thresholdValuesMap.put(CoverageType.METHOD, getThresholdValues(minMethodThreshold, maxMethodThreshold));
