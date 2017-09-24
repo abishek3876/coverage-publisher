@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.sun.corba.se.impl.encoding.CodeSetConversion;
 import hudson.*;
 import hudson.model.*;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.coverage.model.BuildCoverage;
 import org.jenkinsci.plugins.coverage.model.ClassCoverage;
 import org.jenkinsci.plugins.coverage.model.PackageCoverage;
 import org.jenkinsci.plugins.coveragepublisher.Messages;
@@ -28,48 +30,43 @@ import org.kohsuke.stapler.export.ExportedBean;
 public class CoveragePublisher extends Recorder implements SimpleBuildStep {
 
     @DataBoundSetter
-    public boolean runAlways;
+    public boolean runAlways = false;
     @DataBoundSetter
-    public boolean changeBuildStatusOnThresholdViolation;
+    public boolean changeBuildStatusOnThresholdViolation = false;
     @DataBoundSetter
-    public boolean changeBuildStatusOnDeltaViolation;
+    public boolean changeBuildStatusOnDeltaViolation = false;
 
     @DataBoundSetter
-    public String thresholdInstructionMin;
+    public String thresholdBranchMin = "0";
     @DataBoundSetter
-    public String thresholdInstructionMax;
+    public String thresholdBranchMax = "0";
     @DataBoundSetter
-    public String thresholdBranchMin;
+    public String thresholdLineMin = "0";
     @DataBoundSetter
-    public String thresholdBranchMax;
+    public String thresholdLineMax = "0";
     @DataBoundSetter
-    public String thresholdLineMin;
+    public String thresholdMethodMin = "0";
     @DataBoundSetter
-    public String thresholdLineMax;
+    public String thresholdMethodMax = "0";
     @DataBoundSetter
-    public String thresholdMethodMin;
+    public String thresholdClassMin = "0";
     @DataBoundSetter
-    public String thresholdMethodMax;
-    @DataBoundSetter
-    public String thresholdClassMin;
-    @DataBoundSetter
-    public String thresholdClassMax;
+    public String thresholdClassMax = "0";
 
     @DataBoundSetter
-    public String deltaInstruction;
+    public String deltaBranch = "0";
     @DataBoundSetter
-    public String deltaBranch;
+    public String deltaLine = "0";
     @DataBoundSetter
-    public String deltaLine;
+    public String deltaMethod = "0";
     @DataBoundSetter
-    public String deltaMethod;
-    @DataBoundSetter
-    public String deltaClass;
+    public String deltaClass = "0";
     @DataBoundSetter
     public List<CoverageTool> coverageTools = new ArrayList<>();
 
     @DataBoundConstructor
-    public CoveragePublisher(){}
+    public CoveragePublisher(){
+    }
 
     @Override
     public BuildStepMonitor getRequiredMonitorService() {
@@ -96,11 +93,11 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
 
         EnvVars envVars = Utils.getEnvVars(run, listener);
 
-        CoverageThreshold coverageThreshold = new CoverageThreshold(envVars, thresholdInstructionMin, thresholdInstructionMax,
-                thresholdBranchMin, thresholdBranchMax, thresholdLineMin, thresholdLineMax, thresholdMethodMin, thresholdMethodMax,
+        CoverageThreshold coverageThreshold = new CoverageThreshold(envVars, thresholdBranchMin, thresholdBranchMax,
+                thresholdLineMin, thresholdLineMax, thresholdMethodMin, thresholdMethodMax,
                 thresholdClassMin, thresholdClassMax);
 
-        CoverageThreshold deltaThreshold = null; //TODO: Populate delta threshold values
+        CoverageThreshold deltaThreshold = getDeltaThreshold(run, envVars);
 
         logger.println("[CodeCoverage] Collecting coverage data for input:\n"
                 + "\tRunAlways: " + runAlways + "\n"
@@ -113,14 +110,44 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
             logger.println("\t\t" + tool);
         }
 
-        Map<String, List<PackageCoverage>> buildCoverage = new TreeMap<>();
+        final Map<String, List<PackageCoverage>> coverageMap = new TreeMap<>();
         for (CoverageTool tool : coverageTools) {
             try {
-                buildCoverage.put(tool.getDescriptor().getDisplayName(), tool.perform(run, workspace, listener));
+                coverageMap.put(tool.getDescriptor().getDisplayName(), tool.perform(run, workspace, listener));
             } catch (Exception e) {
                 logger.println("[CodeCoverage] ERROR: " + tool.getDescriptor().getDisplayName() + " failed processing");
                 e.printStackTrace(logger);
             }
+        }
+        BuildCoverage buildCoverage = new BuildCoverage() {
+            @Override
+            public Map<String, List<PackageCoverage>> getCoverage() {
+                return coverageMap;
+            }
+        };
+
+        run.addAction(new CoverageBuildAction(buildCoverage));
+
+        if (deltaThreshold.isTargetMet(buildCoverage) != 1) {
+            logger.println("[Code Coverage] Delta thresholds not met. Failing build.");
+            run.setResult(Result.FAILURE);
+        }
+    }
+
+    private CoverageThreshold getDeltaThreshold(Run run, EnvVars envVars) {
+        Job parent = run.getParent();
+        Run previousRun = (parent == null)? null : parent.getLastSuccessfulBuild();
+        CoverageBuildAction previousAction = (previousRun == null)? null : previousRun.getAction(CoverageBuildAction.class);
+        BuildCoverage lastCoverage = (previousAction == null)? null : previousAction.getTarget();
+
+        if (lastCoverage == null) {
+            return new CoverageThreshold(envVars, "0", "0", "0", "0", "0", "0", "0", "0");
+        } else {
+            String branchDelta = Float.toString(lastCoverage.getBranchCounter().getCoveredPercent() - CoverageThreshold.getResolvedThreshold(envVars, deltaBranch));
+            String lineDelta = Float.toString(lastCoverage.getLineCounter().getCoveredPercent() - CoverageThreshold.getResolvedThreshold(envVars, deltaLine));
+            String methodDelta = Float.toString(lastCoverage.getMethodCounter().getCoveredPercent() - CoverageThreshold.getResolvedThreshold(envVars, deltaMethod));
+            String classDelta = Float.toString(lastCoverage.getClassCounter().getCoveredPercent() - CoverageThreshold.getResolvedThreshold(envVars, deltaClass));
+            return new CoverageThreshold(envVars, branchDelta, branchDelta, lineDelta, lineDelta, methodDelta, methodDelta, classDelta, classDelta);
         }
     }
 

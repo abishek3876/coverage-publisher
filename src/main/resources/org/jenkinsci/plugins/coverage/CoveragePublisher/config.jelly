@@ -3,4 +3,110 @@
     <f:entry title="${%coverageTools}" description="${%coverageToolsDescription}">
         <f:repeatableHeteroProperty field="coverageTools" hasHeader="true"/>
     </f:entry>
+
+    <f:entry field="runAlways">
+        <f:checkbox checked="${instance.selected}" title="${%runAlways}"/>
+    </f:entry>
+
+    <f:entry field="changeBuildStatusOnThresholdViolation">
+        <f:checkbox checked="${instance.selected}" title="${%changeBuildStatusOnThresholdViolation}"/>
+    </f:entry>
+    <f:entry>
+        <table width="78%">
+            <col width="12%"/>
+            <col width="11%"/>
+            <col width="11%"/>
+            <col width="11%"/>
+            <col width="11%"/>
+            <thead>
+                <tr>
+                    <td width="12%"/>
+                    <td width="11%">${%branchPercent}</td>
+                    <td width="11%">${%linePercent}</td>
+                    <td width="11%">${%methodPercent}</td>
+                    <td width="11%">${%classPercent}</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>
+                        <img src="${rootURL}/images/16x16/health-80plus.gif" alt="100%"
+                             title="${%thresholdMaxTitle}"/>
+                    </th>
+                    <td>
+                        <f:textbox field="thresholdBranchMax" default="0"/>
+                    </td>
+                    <td>
+                        <f:textbox field="thresholdLineMax" default="0"/>
+                    </td>
+                    <td>
+                        <f:textbox field="thresholdMethodMax" default="0"/>
+                    </td>
+                    <td>
+                        <f:textbox field="thresholdClassMax" default="0"/>
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        <img src="${rootURL}/images/16x16/health-00to19.gif" alt="0%"
+                             title="${%thresholdMinTitle}"/>
+                    </th>
+                    <td>
+                        <f:textbox field="thresholdBranchMin" default="0"/>
+                    </td>
+                    <td>
+                        <f:textbox field="thresholdLineMin" default="0"/>
+                    </td>
+                    <td>
+                        <f:textbox field="thresholdMethodMin" default="0"/>
+                    </td>
+                    <td>
+                        <f:textbox field="thresholdClassMin" default="0"/>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </f:entry>
+
+    <f:entry field="changeBuildStatusOnDeltaViolation">
+        <f:checkbox checked="${instance.selected}" title="${%changeBuildStatusOnDeltaViolation}"/>
+    </f:entry>
+    <f:entry>
+        <table width="78%">
+            <col width="12%"/>
+            <col width="11%"/>
+            <col width="11%"/>
+            <col width="11%"/>
+            <col width="11%"/>
+            <thead>
+                <tr>
+                    <td width="12%"/>
+                    <td width="11%">${%branchPercent}</td>
+                    <td width="11%">${%linePercent}</td>
+                    <td width="11%">${%methodPercent}</td>
+                    <td width="11%">${%classPercent}</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>
+                        <img src="${rootURL}/images/16x16/health-00to19.gif" alt="0%"
+                             title="${%thresholdMinTitle}"/>
+                    </th>
+                    <td>
+                        <f:textbox field="deltaBranch" default="0"/>
+                    </td>
+                    <td>
+                        <f:textbox field="deltaLine" default="0"/>
+                    </td>
+                    <td>
+                        <f:textbox field="deltaMethod" default="0"/>
+                    </td>
+                    <td>
+                        <f:textbox field="deltaClass" default="0"/>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </f:entry>
 </j:jelly>

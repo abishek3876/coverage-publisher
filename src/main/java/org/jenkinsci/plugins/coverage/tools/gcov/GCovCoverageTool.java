@@ -28,7 +28,7 @@ public class GCovCoverageTool extends CoverageTool {
     }
 
     @Extension
-    @Symbol("gCovTool")
+    @Symbol("gcovTool")
     public static class DescriptorImpl extends CoverageToolDescriptor {
         @Override
         public String getDisplayName() {

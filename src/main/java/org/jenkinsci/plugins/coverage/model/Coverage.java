@@ -32,5 +32,13 @@ public interface Coverage {
         public int getCoveredCount() {
             return this.coveredCount;
         }
+
+        public float getCoveredPercent() {
+            if (totalCount <= 0) {
+                return 0;
+            } else {
+                return 100f * coveredCount / totalCount;
+            }
+        }
     }
 }
