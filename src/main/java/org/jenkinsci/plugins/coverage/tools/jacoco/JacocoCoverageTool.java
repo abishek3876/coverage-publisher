@@ -21,43 +21,30 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
 public class JacocoCoverageTool extends CoverageTool {
 
     @DataBoundConstructor
     public JacocoCoverageTool() {}
 
     @DataBoundSetter
-    public String sourcePattern;
+    public String sourcePattern = "**/src/main/java";
     @DataBoundSetter
-    public String classPattern;
+    public String classPattern = "**/classes";
     @DataBoundSetter
-    public String execPattern;
+    public String execPattern = "**/*.exec,**/*.ec";
     @DataBoundSetter
-    public String includePattern;
+    public String includePattern = "";
     @DataBoundSetter
-    public String excludePattern;
-
-    private ExecutionDataStore executionDataStore;
-    private SessionInfoStore sessionInfoStore;
-
-    private Run run;
-    private FilePath workspace;
-    private TaskListener listener;
-    private EnvVars envVars;
-    private IBundleCoverage bundleCoverage;
+    public String excludePattern = "";
 
     @Override
     protected List<PackageCoverage> perform(Run run, FilePath workspace, TaskListener listener) throws Exception {
-        this.run = run;
-        this.workspace = workspace;
-        this.listener = listener;
-        this.envVars = Utils.getEnvVars(run, listener);
+        EnvVars envVars = Utils.getEnvVars(run, listener);
 
-        loadExecutionData();
-        this.bundleCoverage = analyzeStructure();
+        ExecutionDataStore executionDataStore = loadExecutionData(workspace, envVars);
+        IBundleCoverage bundleCoverage = analyzeStructure(executionDataStore, workspace, envVars);
         List<FilePath> sourceDirs = Utils.resolveDirectories(sourcePattern, workspace, envVars);
-        return getPackageCoverageList(this.bundleCoverage);
+        return getPackageCoverageList(bundleCoverage);
     }
 
     private List<PackageCoverage> getPackageCoverageList(IBundleCoverage bundleCoverage) {
@@ -132,11 +119,11 @@ public class JacocoCoverageTool extends CoverageTool {
         return methodCoverages;
     }
 
-    private void loadExecutionData() throws Exception {
+    private ExecutionDataStore loadExecutionData(FilePath workspace, EnvVars envVars) throws Exception {
         List<FilePath> execFiles = Utils.resolveFiles(execPattern, workspace, envVars);
 
-        executionDataStore = new ExecutionDataStore();
-        sessionInfoStore = new SessionInfoStore();
+        ExecutionDataStore executionDataStore = new ExecutionDataStore();
+        SessionInfoStore sessionInfoStore = new SessionInfoStore();
 
         for (FilePath execFile : execFiles) {
             try (InputStream execStream = new FileInputStream(execFile.getRemote())) {
@@ -146,9 +133,11 @@ public class JacocoCoverageTool extends CoverageTool {
                 execReader.read();
             }
         }
+
+        return executionDataStore;
     }
 
-    private IBundleCoverage analyzeStructure() throws Exception {
+    private IBundleCoverage analyzeStructure(ExecutionDataStore executionDataStore, FilePath workspace, EnvVars envVars) throws Exception {
         List<FilePath> classDirs = Utils.resolveDirectories(classPattern, workspace, envVars);
         String includes = envVars.expand(includePattern);
         String excludes = envVars.expand(excludePattern);

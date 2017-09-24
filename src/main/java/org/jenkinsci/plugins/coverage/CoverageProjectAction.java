@@ -5,16 +5,16 @@ import hudson.model.Action;
 public class CoverageProjectAction implements Action {
     @Override
     public String getIconFileName() {
-        return null;
+        return CoverageBuildAction.COVERAGE_ICON_FILE;
     }
 
     @Override
     public String getDisplayName() {
-        return null;
+        return Messages.CoveragePublisher_CoverageTrend();
     }
 
     @Override
     public String getUrlName() {
-        return null;
+        return CoverageBuildAction.COVERAGE_URL;
     }
 }

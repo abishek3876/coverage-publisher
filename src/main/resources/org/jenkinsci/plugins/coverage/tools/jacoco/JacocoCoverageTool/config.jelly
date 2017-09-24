@@ -1,18 +1,18 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
     <f:entry title="${%sourcePattern}">
-        <f:textbox field="sourcePattern"/>
+        <f:textbox field="sourcePattern" default="**/src/main/java"/>
     </f:entry>
     <f:entry title="${%classPattern}">
-        <f:textbox field="classPattern"/>
+        <f:textbox field="classPattern" default="**/classes"/>
     </f:entry>
     <f:entry title="${%execPattern}">
-        <f:textbox field="execPattern"/>
+        <f:textbox field="execPattern" default="**/*.exec,**/*.ec"/>
     </f:entry>
     <f:entry title="${%includePattern}">
-        <f:textbox field="includePattern"/>
+        <f:textbox field="includePattern" default=""/>
     </f:entry>
     <f:entry title="${%excludePattern}">
-        <f:textbox field="excludePattern"/>
+        <f:textbox field="excludePattern" default=""/>
     </f:entry>
 </j:jelly>

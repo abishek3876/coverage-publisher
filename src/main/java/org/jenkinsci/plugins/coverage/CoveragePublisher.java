@@ -1,16 +1,15 @@
 package org.jenkinsci.plugins.coverage;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import com.sun.corba.se.impl.encoding.CodeSetConversion;
-import hudson.*;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
 import hudson.model.*;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.BuildStepMonitor;
+import hudson.tasks.Publisher;
+import hudson.tasks.Recorder;
+import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.coverage.model.BuildCoverage;
 import org.jenkinsci.plugins.coverage.model.ClassCoverage;
@@ -19,13 +18,14 @@ import org.jenkinsci.plugins.coveragepublisher.Messages;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Publisher;
-import hudson.tasks.Recorder;
-import jenkins.tasks.SimpleBuildStep;
-import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.export.ExportedBean;
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class CoveragePublisher extends Recorder implements SimpleBuildStep {
 
@@ -74,7 +74,7 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
     }
 
     @Override
-    public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener)
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener)
             throws InterruptedException, IOException {
 
         PrintStream logger = listener.getLogger();
@@ -135,8 +135,7 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
     }
 
     private CoverageThreshold getDeltaThreshold(Run run, EnvVars envVars) {
-        Job parent = run.getParent();
-        Run previousRun = (parent == null)? null : parent.getLastSuccessfulBuild();
+        Run previousRun = run.getParent().getLastSuccessfulBuild();
         CoverageBuildAction previousAction = (previousRun == null)? null : previousRun.getAction(CoverageBuildAction.class);
         BuildCoverage lastCoverage = (previousAction == null)? null : previousAction.getTarget();
 
@@ -177,7 +176,6 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
        // packagePOJO.
     }
 
-    @SuppressWarnings("unused")
     @Symbol("codeCoverage")
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {

@@ -11,8 +11,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class CoverageBuildAction implements HealthReportingAction, StaplerProxy, RunAction2, SimpleBuildStep.LastBuildAction {
-    private static final String COVERAGE_ICON_FILE = "/plugin/coverage-publisher/icons/coverage.png";
-    private static final String COVERAGE_URL = "coverage";
+    public static final String COVERAGE_ICON_FILE = "/plugin/coverage-publisher/icons/coverage.png";
+    public static final String COVERAGE_URL = "coverage";
 
     private final BuildCoverage buildCoverage;
 
