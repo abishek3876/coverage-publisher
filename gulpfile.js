@@ -1,14 +1,16 @@
-var builder = require('@jenkins-cd/js-builder');
-
+ // packages 
 var gulp        = require('gulp'),
-    babel        = require('gulp-babel'),
-    sourcemaps    = require('gulp-sourcemaps');
+    babel       = require('gulp-babel'),
+    sourcemaps  = require('gulp-sourcemaps'),
+    browserify  = require('browserify'),
+    source      = require('vinyl-source-stream');
 
 // build all the JavaScript things
-gulp.task('build-script', function() {
+gulp.task('babelify', function() {
     var src = [
-        './src/main/js/*.*'
-    ];
+        './src/main/js/*.js',
+        './src/main/js/*.jsx'
+        ];
 
     return gulp.src(src)
                 .pipe(sourcemaps.init())
@@ -22,4 +24,11 @@ gulp.task('build-script', function() {
                 .pipe(gulp.dest('./dist/js'));
 });
 
-builder.bundle('src/main/js/CoverageTemplates.jsx');
+gulp.task('default', ['babelify'], function() {
+   return browserify('./dist/js/CoverageTemplates.js')
+       .bundle()
+       //Pass desired output filename to vinyl-source-stream
+       .pipe(source('CoverageTemplates.js'))
+       // Start piping stream to tasks!
+       .pipe(gulp.dest('./target/classes/org/jenkins/ui/jsmodules/coverage-publisher'));
+});

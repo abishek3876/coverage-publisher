@@ -4,6 +4,7 @@
          xmlns:f="/lib/form" xmlns:i="jelly:fmt">
     <t:summary icon="/plugin/coverage-publisher/icons/coverage.png">
         <b>CODE COVERAGE OVERALL SUMMARY</b>
+        <div id="coverage"></div>
     </t:summary>
     <st:adjunct includes="org.jenkins.ui.jsmodules.coverage-publisher.CoverageTemplates"/>
 </j:jelly>
