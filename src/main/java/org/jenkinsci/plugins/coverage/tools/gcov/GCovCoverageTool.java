@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.coverage.tools.gcov;
 
 import hudson.Extension;
 import hudson.FilePath;
+import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.jenkinsci.Symbol;
@@ -18,7 +19,7 @@ public class GCovCoverageTool extends CoverageTool {
     public GCovCoverageTool() {}
 
     @Override
-    protected List<PackageCoverage> perform(Run run, FilePath workspace, TaskListener listener) throws Exception {
+    protected List<PackageCoverage> perform(Run run, FilePath workspace, Launcher launcher, TaskListener listener) throws Exception {
         return new ArrayList<>(); //TODO
     }
 

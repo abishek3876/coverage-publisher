@@ -3,8 +3,10 @@ package org.jenkinsci.plugins.coverage.tools.jacoco;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
+import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.remoting.Callable;
 import org.codehaus.plexus.util.FileUtils;
 import org.jacoco.core.analysis.*;
 import org.jacoco.core.data.ExecutionDataReader;
@@ -14,6 +16,7 @@ import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.coverage.CoverageTool;
 import org.jenkinsci.plugins.coverage.Utils;
 import org.jenkinsci.plugins.coverage.model.*;
+import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -33,39 +36,34 @@ public class JacocoCoverageTool extends CoverageTool {
     @DataBoundSetter
     public String execPattern = "**/*.exec,**/*.ec";
     @DataBoundSetter
-    public String includePattern = "";
+    public String includePattern = "**";
     @DataBoundSetter
     public String excludePattern = "";
 
     @Override
-    protected List<PackageCoverage> perform(Run run, FilePath workspace, TaskListener listener) throws Exception {
-        EnvVars envVars = Utils.getEnvVars(run, listener);
+    protected List<PackageCoverage> perform(Run run, final FilePath workspace, Launcher launcher, TaskListener listener) throws Exception {
+        final EnvVars envVars = Utils.getEnvVars(run, listener);
 
-        ExecutionDataStore executionDataStore = loadExecutionData(workspace, envVars);
-        IBundleCoverage bundleCoverage = analyzeStructure(executionDataStore, workspace, envVars);
-        List<FilePath> sourceDirs = Utils.resolveDirectories(sourcePattern, workspace, envVars);
-        return getPackageCoverageList(bundleCoverage);
+        return launcher.getChannel().call(new Callable<List<PackageCoverage>, Exception>() {
+            @Override
+            public void checkRoles(RoleChecker checker) throws SecurityException {
+                //No role checking for now.
+            }
+
+            @Override
+            public List<PackageCoverage> call() throws Exception {
+                ExecutionDataStore executionDataStore = loadExecutionData(workspace, envVars);
+                IBundleCoverage bundleCoverage = analyzeStructure(executionDataStore, workspace, envVars);
+                List<FilePath> sourceDirs = Utils.resolveDirectories(sourcePattern, workspace, envVars);
+                return getPackageCoverageList(bundleCoverage);
+            }
+        });
     }
 
     private List<PackageCoverage> getPackageCoverageList(IBundleCoverage bundleCoverage) {
         List<PackageCoverage> packageCoverages = new ArrayList<>();
         for (final IPackageCoverage packageCoverage : bundleCoverage.getPackages()) {
-            packageCoverages.add(new PackageCoverage() {
-                @Override
-                public String getPackageName() {
-                    return packageCoverage.getName();
-                }
-
-                @Override
-                public List<ClassCoverage> getClasses() {
-                    return getClassCoverageList(packageCoverage);
-                }
-
-                @Override
-                public List<SourceFileCoverage> getSourceFiles() {
-                    return null;
-                }
-            });
+            packageCoverages.add(new PackageCoverage(packageCoverage.getName(), getClassCoverageList(packageCoverage)));
         }
 
         return packageCoverages;
@@ -74,22 +72,7 @@ public class JacocoCoverageTool extends CoverageTool {
     private List<ClassCoverage> getClassCoverageList(IPackageCoverage packageCoverage) {
         List<ClassCoverage> classCoverages = new ArrayList<>();
         for (final IClassCoverage classCoverage : packageCoverage.getClasses()) {
-            classCoverages.add(new ClassCoverage() {
-                @Override
-                public String getClassName() {
-                    return classCoverage.getName();
-                }
-
-                @Override
-                public String getSourceFileName() {
-                    return classCoverage.getSourceFileName();
-                }
-
-                @Override
-                public List<MethodCoverage> getMethods() {
-                    return getMethodCoverageList(classCoverage);
-                }
-            });
+            classCoverages.add(new ClassCoverage(classCoverage.getName(), getMethodCoverageList(classCoverage)));
         }
         return classCoverages;
     }
@@ -97,24 +80,10 @@ public class JacocoCoverageTool extends CoverageTool {
     private List<MethodCoverage> getMethodCoverageList(IClassCoverage classCoverage) {
         List<MethodCoverage> methodCoverages = new ArrayList<>();
         for (final IMethodCoverage methodCoverage : classCoverage.getMethods()) {
-            methodCoverages.add(new MethodCoverage() {
-                @Override
-                public String getMethodName() {
-                    return methodCoverage.getName();
-                }
+            ICounter bCounter = methodCoverage.getBranchCounter();
+            ICounter lCounter = methodCoverage.getLineCounter();
 
-                @Override
-                public Counter getBranchCounter() {
-                    ICounter counter = methodCoverage.getBranchCounter();
-                    return new Counter(counter.getTotalCount(), counter.getCoveredCount());
-                }
-
-                @Override
-                public Counter getLineCounter() {
-                    ICounter counter = methodCoverage.getLineCounter();
-                    return new Counter(counter.getTotalCount(), counter.getCoveredCount());
-                }
-            });
+            methodCoverages.add(new MethodCoverage(methodCoverage.getName(), bCounter.getTotalCount(), bCounter.getCoveredCount(), lCounter.getTotalCount(), lCounter.getCoveredCount()));
         }
         return methodCoverages;
     }

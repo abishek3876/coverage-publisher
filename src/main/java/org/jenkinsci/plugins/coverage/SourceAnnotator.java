@@ -30,7 +30,7 @@ public class SourceAnnotator {
 		this.buildCoverage = buildCoverage;
 		this.logger = logger;
 	}
-
+/*
 	public void process() throws IOException, InterruptedException {
 	    for (List<PackageCoverage> packageCoverages : buildCoverage.values()) {
 	        if (packageCoverages != null) {

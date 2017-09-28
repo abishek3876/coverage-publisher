@@ -7,17 +7,21 @@ import org.kohsuke.stapler.StaplerProxy;
 
 import jenkins.model.RunAction2;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 
 public class CoverageBuildAction implements HealthReportingAction, StaplerProxy, RunAction2, SimpleBuildStep.LastBuildAction {
     public static final String COVERAGE_ICON_FILE = "/plugin/coverage-publisher/icons/coverage.png";
     public static final String COVERAGE_URL = "coverage";
 
     private final BuildCoverage buildCoverage;
+    private final int healthScore;
 
-    public CoverageBuildAction(BuildCoverage buildCoverage) {
+    public CoverageBuildAction(BuildCoverage buildCoverage, int healthScore) {
         this.buildCoverage = buildCoverage;
+        this.healthScore = healthScore;
     }
 
     @Override
@@ -37,8 +41,9 @@ public class CoverageBuildAction implements HealthReportingAction, StaplerProxy,
 
     @Override
     public HealthReport getBuildHealth() {
-        HealthReport report = new HealthReport();
-        return null;
+        HealthReport report = new HealthReport(healthScore, Messages._CoveragePublisher_CoverageValues(buildCoverage.getClassCounter().getCoveredPercent(),
+                buildCoverage.getMethodCounter().getCoveredPercent(), buildCoverage.getLineCounter().getCoveredPercent(), buildCoverage.getBranchCounter().getCoveredPercent()));
+        return report;
     }
 
     @Override
@@ -60,7 +65,6 @@ public class CoverageBuildAction implements HealthReportingAction, StaplerProxy,
 
     @Override
     public Collection<? extends Action> getProjectActions() {
-        //TODO Auto-generated method stub
-        return Collections.EMPTY_LIST;
+        return Collections.singleton(new CoverageProjectAction());
     }
 }

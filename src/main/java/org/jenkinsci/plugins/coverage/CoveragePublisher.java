@@ -12,9 +12,7 @@ import hudson.tasks.Recorder;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.coverage.model.BuildCoverage;
-import org.jenkinsci.plugins.coverage.model.ClassCoverage;
 import org.jenkinsci.plugins.coverage.model.PackageCoverage;
-import org.jenkinsci.plugins.coveragepublisher.Messages;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -76,7 +74,6 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener)
             throws InterruptedException, IOException {
-
         PrintStream logger = listener.getLogger();
         if (!runAlways && (run.getResult() == Result.FAILURE || run.getResult() == Result.ABORTED)) {
             logger.println("[CodeCoverage] Skipping coverage publishing because of build result");
@@ -113,22 +110,18 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
         final Map<String, List<PackageCoverage>> coverageMap = new TreeMap<>();
         for (CoverageTool tool : coverageTools) {
             try {
-                coverageMap.put(tool.getDescriptor().getDisplayName(), tool.perform(run, workspace, listener));
+                coverageMap.put(tool.getDescriptor().getDisplayName(), tool.perform(run, workspace, launcher, listener));
             } catch (Exception e) {
                 logger.println("[CodeCoverage] ERROR: " + tool.getDescriptor().getDisplayName() + " failed processing");
                 e.printStackTrace(logger);
             }
         }
-        BuildCoverage buildCoverage = new BuildCoverage() {
-            @Override
-            public Map<String, List<PackageCoverage>> getCoverage() {
-                return coverageMap;
-            }
-        };
+        BuildCoverage buildCoverage = new BuildCoverage(coverageMap);
+        int healthScore = coverageThreshold.getScoreForCoverage(buildCoverage);
 
-        run.addAction(new CoverageBuildAction(buildCoverage));
+        run.addAction(new CoverageBuildAction(buildCoverage, healthScore));
 
-        if (deltaThreshold.isTargetMet(buildCoverage) != 1) {
+        if (deltaThreshold.getScoreForCoverage(buildCoverage) != 100) {
             logger.println("[Code Coverage] Delta thresholds not met. Failing build.");
             run.setResult(Result.FAILURE);
         }
@@ -168,15 +161,15 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
             }
         }
     }
-*/
+
     private void updatePackagePOJO(CoveragePOJO.PackagePOJO packagePOJO, PackageCoverage packageCoverage) {
         for (ClassCoverage classCoverage : packageCoverage.getClasses()) {
             //packagePOJO.classes.
         }
        // packagePOJO.
     }
-
-    @Symbol("codeCoverage")
+*/
+    @Symbol("coverage")
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 

@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.coverage;
 
 import hudson.ExtensionPoint;
 import hudson.FilePath;
+import hudson.Launcher;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.model.Run;
@@ -17,7 +18,7 @@ public abstract class CoverageTool extends AbstractDescribableImpl<CoverageTool>
         return (CoverageToolDescriptor) super.getDescriptor();
     }
 
-    protected abstract List<PackageCoverage> perform(Run run, FilePath workspace, TaskListener listener) throws Exception;
+    protected abstract List<PackageCoverage> perform(Run run, FilePath workspace, Launcher launcher, TaskListener listener) throws Exception;
 
     /**
      * Returns a readable representation of the tool name and <b>resolved</b> input parameters

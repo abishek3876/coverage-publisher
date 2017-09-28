@@ -2,17 +2,29 @@ package org.jenkinsci.plugins.coverage.model;
 
 import java.util.List;
 
-public abstract class ClassCoverage implements Coverage {
-    public abstract String getClassName();
-    public abstract String getSourceFileName();
-    public abstract List<MethodCoverage> getMethods();
+public final class ClassCoverage implements Coverage {
 
-    @Override
-    public Counter getBranchCounter() {
+    private final String className;
+    private final Counter branchCounter;
+    private final Counter lineCounter;
+    private final Counter methodCounter;
+    private final Counter classCounter;
+    private final List<MethodCoverage> methodCoverages;
+
+    public ClassCoverage(String className, List<MethodCoverage> methodCoverages) {
+        this.className = className;
+        this.methodCoverages = methodCoverages;
+        this.branchCounter = computeBranchCounter();
+        this.lineCounter = computeLineCounter();
+        this.methodCounter = computeMethodCounter();
+        this.classCounter = computeClassCounter();
+    }
+
+    private Counter computeBranchCounter() {
         int totalCount = 0;
         int coveredCount = 0;
 
-        for (MethodCoverage methodCoverage : getMethods()) {
+        for (MethodCoverage methodCoverage : methodCoverages) {
             totalCount += methodCoverage.getBranchCounter().getTotalCount();
             coveredCount += methodCoverage.getBranchCounter().getCoveredCount();
         }
@@ -20,12 +32,11 @@ public abstract class ClassCoverage implements Coverage {
         return new Counter(totalCount, coveredCount);
     }
 
-    @Override
-    public Counter getLineCounter() {
+    private Counter computeLineCounter() {
         int totalCount = 0;
         int coveredCount = 0;
 
-        for (MethodCoverage methodCoverage : getMethods()) {
+        for (MethodCoverage methodCoverage : methodCoverages) {
             totalCount += methodCoverage.getLineCounter().getTotalCount();
             coveredCount += methodCoverage.getLineCounter().getCoveredCount();
         }
@@ -33,12 +44,11 @@ public abstract class ClassCoverage implements Coverage {
         return new Counter(totalCount, coveredCount);
     }
 
-    @Override
-    public Counter getMethodCounter() {
+    private Counter computeMethodCounter() {
         int totalCount = 0;
         int coveredCount = 0;
 
-        for (MethodCoverage methodCoverage : getMethods()) {
+        for (MethodCoverage methodCoverage : methodCoverages) {
             totalCount++;
             if (methodCoverage.getMethodCounter().getCoveredCount() > 0) {
                 coveredCount++;
@@ -48,10 +58,34 @@ public abstract class ClassCoverage implements Coverage {
         return new Counter(totalCount, coveredCount);
     }
 
-    @Override
-    public Counter getClassCounter() {
+    private Counter computeClassCounter() {
         int totalCount = 1;
         int coveredCount = (getMethodCounter().getCoveredCount() > 0)? 1 : 0;
         return new Counter(totalCount, coveredCount);
+    }
+
+    @Override
+    public String getName() {
+        return className;
+    }
+
+    @Override
+    public Counter getBranchCounter() {
+        return branchCounter;
+    }
+
+    @Override
+    public Counter getLineCounter() {
+        return lineCounter;
+    }
+
+    @Override
+    public Counter getMethodCounter() {
+        return methodCounter;
+    }
+
+    @Override
+    public Counter getClassCounter() {
+        return classCounter;
     }
 }

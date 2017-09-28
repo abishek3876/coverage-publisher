@@ -10,7 +10,7 @@
         <f:textbox field="execPattern" default="**/*.exec,**/*.ec"/>
     </f:entry>
     <f:entry title="${%includePattern}">
-        <f:textbox field="includePattern" default=""/>
+        <f:textbox field="includePattern" default="**"/>
     </f:entry>
     <f:entry title="${%excludePattern}">
         <f:textbox field="excludePattern" default=""/>

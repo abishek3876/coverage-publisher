@@ -5,9 +5,13 @@ import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.remoting.VirtualChannel;
+import jenkins.MasterToSlaveFileCallable;
 import lib.TestTagLib;
+import org.codehaus.plexus.util.DirectoryScanner;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,7 +44,8 @@ public final class Utils {
     }
 
     public static List<FilePath> resolveDirectories(String pattern, FilePath rootDir, EnvVars envVars) throws IOException, InterruptedException {
-        FilePath[] paths = resolvePaths(pattern, rootDir, envVars);
+        String input = envVars.expand(pattern);
+        FilePath[] paths = rootDir.act(new ResolveDirPaths(input));
         ArrayList<FilePath> filePaths = new ArrayList<>();
         for (FilePath path : paths) {
             if (path.exists() && path.isDirectory()) {
@@ -70,4 +75,36 @@ public final class Utils {
         excludes = envVars.expand(excludes);
         return rootDir.list(pattern, excludes);
     }
+
+    private static class ResolveDirPaths extends MasterToSlaveFileCallable<FilePath[]> {
+        private static final long serialVersionUID = 1552178457453558870L;
+        private static final String DIR_SEP = "\\s*,\\s*";
+        private final String input;
+
+        public ResolveDirPaths(String input) {
+            this.input = input;
+        }
+
+        @Override
+        public FilePath[] invoke(File f, VirtualChannel channel) throws IOException {
+            FilePath base = new FilePath(f);
+            ArrayList<FilePath> localDirectoryPaths= new ArrayList<>();
+            String[] includes = input.split(DIR_SEP);
+            DirectoryScanner ds = new DirectoryScanner();
+
+            ds.setIncludes(includes);
+            ds.setCaseSensitive(false);
+            ds.setBasedir(f);
+            ds.scan();
+            String[] dirs = ds.getIncludedDirectories();
+
+            for (String dir : dirs) {
+                localDirectoryPaths.add(base.child(dir));
+            }
+            FilePath[] lfp = {};//trick to have an empty array as a parameter, so the returned array will contain the elements
+            return localDirectoryPaths.toArray(lfp);
+        }
+
+    }
+
 }

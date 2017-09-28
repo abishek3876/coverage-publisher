@@ -87,41 +87,33 @@ public class CoverageThreshold implements Serializable {
         return thresholdValuesMap.toString();
     }
 
-    public int isTargetMet(BuildCoverage buildCoverage) {
-        int i = 1;
+    public int getScoreForCoverage(BuildCoverage buildCoverage) {
+        int score = 100;
         float branchPercent = buildCoverage.getBranchCounter().getCoveredPercent();
         float linePercent = buildCoverage.getLineCounter().getCoveredPercent();
         float methodPercent = buildCoverage.getMethodCounter().getCoveredPercent();
         float classPercent = buildCoverage.getClassCounter().getCoveredPercent();
 
-        ThresholdValues values = getThreshold(CoverageType.BRANCH);
-        if (branchPercent < values.minThreshold) {
-            return -1;
-        } else if (branchPercent < values.maxThreshold) {
-            i = 0;
-        }
+        score = computeScore(score, getThreshold(CoverageType.BRANCH), branchPercent);
+        score = computeScore(score, getThreshold(CoverageType.LINE), linePercent);
+        score = computeScore(score, getThreshold(CoverageType.METHOD), methodPercent);
+        score = computeScore(score, getThreshold(CoverageType.CLASS), classPercent);
 
-        values = getThreshold(CoverageType.LINE);
-        if (linePercent < values.minThreshold) {
-            return -1;
-        } else if (linePercent < values.maxThreshold) {
-            i = 0;
-        }
+        return score;
+    }
 
-        values = getThreshold(CoverageType.METHOD);
-        if (methodPercent < values.minThreshold) {
-            return -1;
-        } else if (methodPercent < values.maxThreshold) {
-            i = 0;
-        }
+    private int computeScore(int originalScore, ThresholdValues thresholdValues, float actualValue) {
+        if (actualValue >= thresholdValues.maxThreshold) {
+            return originalScore;
+        } else if (actualValue < thresholdValues.minThreshold) {
+            return 0;
+        } else {
+            double currentScore = Math.floor(100 * (actualValue - thresholdValues.minThreshold)/(thresholdValues.maxThreshold - thresholdValues.minThreshold));
 
-        values = getThreshold(CoverageType.CLASS);
-        if (classPercent < values.minThreshold) {
-            return -1;
-        } else if (classPercent < values.maxThreshold) {
-            i = 0;
-        }
+            int actualScore = (int) currentScore + 1;
+            actualScore = (actualScore < originalScore)? actualScore : originalScore;
 
-        return i;
+            return actualScore;
+        }
     }
 }
