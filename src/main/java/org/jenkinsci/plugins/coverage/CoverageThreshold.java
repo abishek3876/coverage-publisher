@@ -1,21 +1,19 @@
 package org.jenkinsci.plugins.coverage;
 
+import hudson.EnvVars;
+import org.jenkinsci.plugins.coverage.model.BuildCoverage;
+import org.jenkinsci.plugins.coverage.model.CoverageCounter;
+import org.jenkinsci.plugins.coverage.model.CoverageType;
+
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import hudson.EnvVars;
-import org.jenkinsci.plugins.coverage.model.BuildCoverage;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-
 /**
  * This holds the coverage targets for marking build results and health.
  */
-public class CoverageThreshold implements Serializable {
+/*package*/ class CoverageThreshold implements Serializable {
     private static final float THRESHOLD_DEFAULT = 0;
 
     private static class ThresholdValues {
@@ -23,15 +21,15 @@ public class CoverageThreshold implements Serializable {
         private final float maxThreshold;
 
         private ThresholdValues(float minThreshold, float maxThreshold) {
-            this.minThreshold = getValidThreshold(0, minThreshold, 100);
-            this.maxThreshold = getValidThreshold(minThreshold, maxThreshold, 100);
+            this.minThreshold = getValidThreshold(0, minThreshold);
+            this.maxThreshold = getValidThreshold(minThreshold, maxThreshold);
         }
 
-        private float getValidThreshold(float lowerBound, float actual, float upperBound) {
+        private float getValidThreshold(float lowerBound, float actual) {
             if (actual < lowerBound) {
                 return lowerBound;
-            } else if (actual > upperBound) {
-                return upperBound;
+            } else if (actual > 100) {
+                return 100;
             } else {
                 return actual;
             }
@@ -43,15 +41,12 @@ public class CoverageThreshold implements Serializable {
         }
     }
 
-    @Nonnull
-    private final EnvVars envVars;
-
-    @Nonnull
-    private final Map<CoverageType, ThresholdValues> thresholdValuesMap = new HashMap<>();
-
     private static final ThresholdValues DEFAULT_THRESHOLD_VALUES = new ThresholdValues(THRESHOLD_DEFAULT, THRESHOLD_DEFAULT);
 
-    public CoverageThreshold(EnvVars envVars,
+    private final EnvVars envVars;
+    private final Map<CoverageType, ThresholdValues> thresholdValuesMap = new HashMap<>();
+
+    public CoverageThreshold(@Nonnull EnvVars envVars,
                              String minBranchThreshold, String maxBranchThreshold,
                              String minLineThreshold, String maxLineThreshold,
                              String minMethodThreshold, String maxMethodThreshold,
@@ -68,7 +63,7 @@ public class CoverageThreshold implements Serializable {
         return new ThresholdValues(getResolvedThreshold(envVars, minThreshold), getResolvedThreshold(envVars, maxThreshold));
     }
 
-    public static float getResolvedThreshold(EnvVars envVars, String input) {
+    /*package*/ static float getResolvedThreshold(EnvVars envVars, String input) {
         try {
             String expandedInput = envVars.expand(input);
             return Float.parseFloat(expandedInput);
@@ -87,19 +82,23 @@ public class CoverageThreshold implements Serializable {
         return thresholdValuesMap.toString();
     }
 
-    public int getScoreForCoverage(BuildCoverage buildCoverage) {
+    /*package*/ int getScoreForCoverage(BuildCoverage buildCoverage) {
         int score = 100;
-        float branchPercent = buildCoverage.getBranchCounter().getCoveredPercent();
-        float linePercent = buildCoverage.getLineCounter().getCoveredPercent();
-        float methodPercent = buildCoverage.getMethodCounter().getCoveredPercent();
-        float classPercent = buildCoverage.getClassCounter().getCoveredPercent();
 
-        score = computeScore(score, getThreshold(CoverageType.BRANCH), branchPercent);
-        score = computeScore(score, getThreshold(CoverageType.LINE), linePercent);
-        score = computeScore(score, getThreshold(CoverageType.METHOD), methodPercent);
-        score = computeScore(score, getThreshold(CoverageType.CLASS), classPercent);
+        for (CoverageType type : CoverageType.values()) {
+            CoverageCounter counter = buildCoverage.getCoverage(type);
+            score = computeScore(score, getThreshold(type), getCoveredPercent(counter));
+        }
 
         return score;
+    }
+
+    /*package*/ static float getCoveredPercent(CoverageCounter counter) {
+        try {
+            return ((float) counter.getCovered() / (counter.getCovered() + counter.getMissed())) * 100;
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     private int computeScore(int originalScore, ThresholdValues thresholdValues, float actualValue) {

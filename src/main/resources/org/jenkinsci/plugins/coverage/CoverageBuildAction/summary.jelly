@@ -2,9 +2,9 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
          xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
          xmlns:f="/lib/form" xmlns:i="jelly:fmt">
-    <t:summary icon="/plugin/coverage-publisher/icons/coverage.png">
-        <b>CODE COVERAGE OVERALL SUMMARY</b>
-        <div id="coverage"></div>
-    </t:summary>
     <st:adjunct includes="org.jenkins.ui.jsmodules.coverage-publisher.CoverageTemplates"/>
+    <t:summary icon="/plugin/coverage-publisher/icons/coverage.png">
+        <div id="coverage"></div>
+        <script></script>
+    </t:summary>
 </j:jelly>

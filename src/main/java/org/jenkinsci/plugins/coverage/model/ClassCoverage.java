@@ -1,91 +1,74 @@
 package org.jenkinsci.plugins.coverage.model;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
-public final class ClassCoverage implements Coverage {
+public class ClassCoverage implements Coverage {
 
     private final String className;
-    private final Counter branchCounter;
-    private final Counter lineCounter;
-    private final Counter methodCounter;
-    private final Counter classCounter;
     private final List<MethodCoverage> methodCoverages;
+    private final String sourceFileName;
 
-    public ClassCoverage(String className, List<MethodCoverage> methodCoverages) {
+    public ClassCoverage(@Nonnull String className, @Nonnull List<MethodCoverage> methodCoverages, @Nullable String sourceFileName) {
         this.className = className;
         this.methodCoverages = methodCoverages;
-        this.branchCounter = computeBranchCounter();
-        this.lineCounter = computeLineCounter();
-        this.methodCounter = computeMethodCounter();
-        this.classCounter = computeClassCounter();
-    }
-
-    private Counter computeBranchCounter() {
-        int totalCount = 0;
-        int coveredCount = 0;
-
-        for (MethodCoverage methodCoverage : methodCoverages) {
-            totalCount += methodCoverage.getBranchCounter().getTotalCount();
-            coveredCount += methodCoverage.getBranchCounter().getCoveredCount();
-        }
-
-        return new Counter(totalCount, coveredCount);
-    }
-
-    private Counter computeLineCounter() {
-        int totalCount = 0;
-        int coveredCount = 0;
-
-        for (MethodCoverage methodCoverage : methodCoverages) {
-            totalCount += methodCoverage.getLineCounter().getTotalCount();
-            coveredCount += methodCoverage.getLineCounter().getCoveredCount();
-        }
-
-        return new Counter(totalCount, coveredCount);
-    }
-
-    private Counter computeMethodCounter() {
-        int totalCount = 0;
-        int coveredCount = 0;
-
-        for (MethodCoverage methodCoverage : methodCoverages) {
-            totalCount++;
-            if (methodCoverage.getMethodCounter().getCoveredCount() > 0) {
-                coveredCount++;
-            }
-        }
-
-        return new Counter(totalCount, coveredCount);
-    }
-
-    private Counter computeClassCounter() {
-        int totalCount = 1;
-        int coveredCount = (getMethodCounter().getCoveredCount() > 0)? 1 : 0;
-        return new Counter(totalCount, coveredCount);
+        this.sourceFileName = sourceFileName;
     }
 
     @Override
+    @Nonnull
     public String getName() {
         return className;
     }
 
     @Override
-    public Counter getBranchCounter() {
-        return branchCounter;
+    @Nonnull
+    public CoverageCounter getCoverage(CoverageType coverageType) {
+        switch (coverageType) {
+            case CLASS: {
+                int covered = 0;
+                for (Coverage methodCoverage : this.methodCoverages) {
+                    if (methodCoverage.getCoverage(CoverageType.METHOD).getCovered() > 0) {
+                        covered = 1;
+                        break;
+                    }
+                }
+                int missed = (covered == 0) ? 1 : 0;
+                return new CoverageCounter(covered, missed);
+            }
+            default: {
+                int covered = 0;
+                int missed = 0;
+                for (Coverage methodCoverage : this.methodCoverages) {
+                    CoverageCounter counter = methodCoverage.getCoverage(coverageType);
+                    covered += counter.getCovered();
+                    missed += counter.getMissed();
+                }
+                return new CoverageCounter(covered, missed);
+            }
+        }
     }
 
     @Override
-    public Counter getLineCounter() {
-        return lineCounter;
+    @Nonnull
+    public List<MethodCoverage> getChildren() {
+        return this.methodCoverages;
+    }
+
+    @Nonnull
+    @Override
+    public String getChildrenType() {
+        return "Methods";
     }
 
     @Override
-    public Counter getMethodCounter() {
-        return methodCounter;
+    public boolean isChildrenRefed() {
+        return false;
     }
 
-    @Override
-    public Counter getClassCounter() {
-        return classCounter;
+    @Nullable
+    public String getSourceFilePath() {
+        return this.sourceFileName;
     }
 }

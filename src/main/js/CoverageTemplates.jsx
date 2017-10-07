@@ -1,29 +1,119 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { JTable, TableRow, TableCell, TableHeader } from '@jenkins-cd/design-language';
+import { BarChart, Tooltip, Bar, XAxis, YAxis, ResponsiveContainer,
+         LineChart, CartesianGrid, Legend, Line, Text
+       } from 'recharts';
 
-const data = [
-      { name: 'Page A', uv: 4000, pv: 2400, amt: 2400 },
-      { name: 'Page B', uv: 3000, pv: 1398, amt: 2210 },
-      { name: 'Page C', uv: 2000, pv: 9800, amt: 2290 },
-      { name: 'Page D', uv: 2780, pv: 3908, amt: 2000 },
-      { name: 'Page E', uv: 1890, pv: 4800, amt: 2181 },
-      { name: 'Page F', uv: 2390, pv: 3800, amt: 2500 },
-      { name: 'Page G', uv: 3490, pv: 4300, amt: 2100 },
+const color_good = "#78B037";
+const color_bad = "#D54C53";
+const color_warn = "#F5A623";
+const color_info = "#4C9BD5";
+const color_list = [
+    "#4A90E2",
+    "#D54C53",
+    "#78B037",
+    "#F5A623",
+    "#BD0FE1",
 ];
-class CoverageTemplates extends Component {
-	render() {
+
+class CoverageTrendGraph extends Component {
+    /*
+        coverageTrend = [{"Build: "1.0.123", "Branch": 23.6, ...}, ...]
+    */
+    current_color = 0;
+    getColor() {
+        var color = color_list[this.current_color];
+        this.current_color += 1;
+        if (this.current_color >= color_list.length) {
+            this.current_color = 0;
+        }
+        return color;
+    }
+
+    render() {
         return (
-            <LineChart width={600} height={300} data={data}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-            <XAxis dataKey="name" />
-                <YAxis />
-                <CartesianGrid strokeDasharray="3 3" />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="pv" stroke="#8884d8" activeDot={{ r: 8 }} />
-                <Line type="monotone" dataKey="uv" stroke="#82ca9d" />
-            </LineChart>
+            <div className="coverage">
+                <h1>Code Coverage Trend</h1>
+                <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={this.props.coverageTrend}>
+                        <XAxis dataKey="Build"/>
+                        <YAxis domain={[0, 100]}/>
+                        <CartesianGrid strokeDasharray="3 3"/>
+                        <Tooltip formatter={value => (value + "%")} labelFormatter={label => ("Build: " + label)}/>
+                        <Legend />
+                        {
+                            Object.keys(this.props.coverageTrend[0]).filter(coverageType => (coverageType !== "Build")).map(
+                                coverageType => <Line dataKey={coverageType} stroke={this.getColor()}/>
+                            )
+                        }
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
+        );
+    }
+}
+
+class CoverageSummaryTable extends Component {
+    /*
+        coverageSummary = {"Branch": {covered: 4, missed: 5}, ...}
+    */
+    render() {
+        const columns = [
+            JTable.column(15, "", false), // Coverage Type
+            JTable.column(30, "", true) // Coverage Bar
+        ];
+        return (
+            <div className="coverage">
+                <h1>Code Coverage Summary</h1>
+                <JTable columns={columns}>
+                    {
+                        Object.keys(this.props.coverageSummary).map( coverageType =>
+                            <TableRow>
+                                <TableCell>{coverageType}</TableCell>
+                                <CoverageGraphCell coverageData={this.props.coverageSummary[coverageType]} />
+                            </TableRow>
+                        )
+                    }
+                </JTable>
+            </div>
+        );
+    }
+}
+
+class CoverageGraphCell extends Component {
+    /*
+        coverageData = {covered: 4, missed: 5}
+    */
+    getTotal() {
+        return this.props.coverageData.covered + this.props.coverageData.missed;
+    }
+
+    getPercent() {
+        var total = this.getTotal();
+        if (total == 0) {
+            return "N/A";
+        } else {
+            return +(this.props.coverageData.covered/total * 100).toFixed(1) + "%";
+        }
+    }
+
+    render() {
+        return (
+            <TableCell>
+                <div style={{position: 'relative'}}>
+                    <ResponsiveContainer width="100%" height={40}>
+                        <BarChart layout="vertical" data={[this.props.coverageData]} stackOffset="expand">
+                            <XAxis hide type="number"/>
+                            <YAxis hide type="category"/>
+                            <Tooltip cursor={false} labelFormatter={() => "Total : ".concat(this.getTotal())}/>
+                            <Bar name="Covered" dataKey="covered" stackId="default" fill={color_good}/>
+                            <Bar name="Missed" dataKey="missed" stackId="default" fill={color_bad}/>
+                        </BarChart>
+                    </ResponsiveContainer>
+                    <p className="coverage-barchart-percent">{this.getPercent()}</p>
+                </div>
+            </TableCell>
         );
     }
 }

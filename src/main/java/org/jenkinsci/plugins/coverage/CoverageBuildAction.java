@@ -2,25 +2,26 @@ package org.jenkinsci.plugins.coverage;
 
 import hudson.model.*;
 import jenkins.tasks.SimpleBuildStep;
-import org.jenkinsci.plugins.coverage.model.BuildCoverage;
+import org.jenkinsci.plugins.coverage.model.CoverageCounter;
+import org.jenkinsci.plugins.coverage.model.CoverageType;
 import org.kohsuke.stapler.StaplerProxy;
 
 import jenkins.model.RunAction2;
 
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
+import java.util.Map;
 
 public class CoverageBuildAction implements HealthReportingAction, StaplerProxy, RunAction2, SimpleBuildStep.LastBuildAction {
-    public static final String COVERAGE_ICON_FILE = "/plugin/coverage-publisher/icons/coverage.png";
-    public static final String COVERAGE_URL = "coverage";
+    /*package*/ static final String COVERAGE_ICON_FILE = "/plugin/coverage-publisher/icons/coverage.png";
+    /*package*/ static final String COVERAGE_URL = "coverage";
 
-    private final BuildCoverage buildCoverage;
+    private final Map<CoverageType, CoverageCounter> coverageSummary;
     private final int healthScore;
+    private Run<?,?> run;
 
-    public CoverageBuildAction(BuildCoverage buildCoverage, int healthScore) {
-        this.buildCoverage = buildCoverage;
+    /*package*/ CoverageBuildAction(Map<CoverageType, CoverageCounter> coverageSummary, int healthScore) {
+        this.coverageSummary = coverageSummary;
         this.healthScore = healthScore;
     }
 
@@ -41,30 +42,34 @@ public class CoverageBuildAction implements HealthReportingAction, StaplerProxy,
 
     @Override
     public HealthReport getBuildHealth() {
-        HealthReport report = new HealthReport(healthScore, Messages._CoveragePublisher_CoverageValues(buildCoverage.getClassCounter().getCoveredPercent(),
-                buildCoverage.getMethodCounter().getCoveredPercent(), buildCoverage.getLineCounter().getCoveredPercent(), buildCoverage.getBranchCounter().getCoveredPercent()));
-        return report;
+        StringBuilder coverageValues = new StringBuilder();
+        for (CoverageType type : CoverageType.values()) {
+            coverageValues.append(",").append(type).append(":").append(CoverageThreshold.getCoveredPercent(coverageSummary.get(type)));
+        }
+        return new HealthReport(healthScore, Messages._CoveragePublisher_CoverageValues(coverageValues.substring(1)));
     }
 
     @Override
-    public void onAttached(Run<?, ?> r) {
-        // TODO Auto-generated method stub
-
+    public void onAttached(Run<?, ?> run) {
+        this.run = run;
     }
 
     @Override
-    public void onLoad(Run<?, ?> r) {
-        // TODO Auto-generated method stub
-
+    public void onLoad(Run<?, ?> run) {
+        this.run = run;
     }
 
     @Override
-    public BuildCoverage getTarget() {
-        return buildCoverage;
+    public ReportRenderer getTarget() {
+        return new ReportRenderer(run.getRootDir());
     }
 
     @Override
     public Collection<? extends Action> getProjectActions() {
-        return Collections.singleton(new CoverageProjectAction());
+        return Collections.singleton(new CoverageProjectAction(this.run.getParent()));
+    }
+
+    public Map<CoverageType, CoverageCounter> getCoverageSummary() {
+        return this.coverageSummary;
     }
 }

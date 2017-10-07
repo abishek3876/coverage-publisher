@@ -17,3 +17,7 @@ work/
 .idea/
 build/
 *.iml
+
+node_modules/
+dist/
+temp/

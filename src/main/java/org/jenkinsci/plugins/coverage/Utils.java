@@ -13,10 +13,7 @@ import org.codehaus.plexus.util.DirectoryScanner;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class Utils {
     private Utils() {}
@@ -104,7 +101,9 @@ public final class Utils {
             FilePath[] lfp = {};//trick to have an empty array as a parameter, so the returned array will contain the elements
             return localDirectoryPaths.toArray(lfp);
         }
-
     }
 
+    public static String normalizeForFileName(String input) {
+        return input.toLowerCase(Locale.US).replaceAll("\\W+", ".");
+    }
 }
