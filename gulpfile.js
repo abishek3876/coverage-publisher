@@ -9,7 +9,7 @@ var gulp        = require('gulp'),
 gulp.task('babelify', function() {
     var src = [
         './src/main/js/*.js',
-        './src/main/js/*.jsx'
+        './src/main/js/*.jsx',
         ];
 
     return gulp.src(src)
@@ -26,6 +26,7 @@ gulp.task('babelify', function() {
 
 gulp.task('default', ['babelify'], function() {
    return browserify('./dist/js/CoverageTemplates.js')
+       .transform('browserify-css')
        .bundle()
        //Pass desired output filename to vinyl-source-stream
        .pipe(source('CoverageTemplates.js'))

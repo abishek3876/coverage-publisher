@@ -1,0 +1,90 @@
+.coverage .JTable {
+  border: solid 1px #e6eaee;
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+}
+.coverage .JTable.u-table-maxwidth {
+  max-width: 800px;
+}
+.coverage .JTable-row {
+  display: flex;
+  flex-direction: row;
+  border-top: solid 1px #e6eaee;
+}
+.coverage .JTable-row:first-child {
+  border-top: none;
+}
+.coverage a.JTable-row--href {
+  text-decoration: inherit;
+}
+.coverage a.JTable-row--href:hover {
+  color: inherit;
+  text-decoration: inherit;
+}
+.coverage .JTable-row--rollOver {
+  cursor: pointer;
+}
+.coverage .JTable-row--rollOver:hover {
+  background: #fafbfd;
+}
+.coverage .JTable-cell {
+  min-width: 40px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding-left: 16px;
+  padding-right: 16px;
+  flex: 1;
+}
+.coverage a.JTable-cell,
+a.JTable-cell:hover,
+.JTable-cell a.unstyled-link {
+  color: inherit;
+  text-decoration: inherit;
+}
+.coverage .JTable-cell:first-child {
+  padding-left: 23px;
+}
+.coverage .JTable-cell:last-child {
+  padding-right: 23px;
+}
+.coverage .TableCell--actions .JTable-cell-contents {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+}
+.coverage .JTable-cell-contents {
+  width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.coverage .JTable-header {
+  color: rgba(0, 0, 0, 0.4);
+  text-transform: uppercase;
+  font-weight: bold;
+  text-align: center;
+}
+.coverage .recharts-tooltip-wrapper {
+  z-index: 2;
+}
+.coverage-barchart-percent {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  margin: 0;
+  color: #FFFFFF;
+  z-index: 1;
+  font-weight: bold;
+}
+.coverage h1 {
+    line-height: 1em;
+}
+.coverage {
+  font-family: Calibri, sans-serif !important;
+  font-size: 15px !important;
+}
+.coverage-code {
+  font-family: Consolas, Monaco, monospace !important;
+}

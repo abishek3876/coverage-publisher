@@ -14,8 +14,11 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
+    "@jenkins-cd/design-language": "0.0.157",
+    "browserify-css": "^0.12.0",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
+    "react-router": "^2.8.1",
     "recharts": "^1.0.0-apha.5"
   }
 }

@@ -28,8 +28,8 @@ import java.util.Map;
 
 public class CoveragePublisher extends Recorder implements SimpleBuildStep {
 
-    private static final String COVERAGE_PATH = "coverage";
-    private static final String SUMMARY_FILE = "summary.coverage";
+    /*package*/ static final String COVERAGE_PATH = "coverage";
+    /*package*/ static final String SUMMARY_FILE = "summary.coverage";
 
     @DataBoundSetter
     public boolean runAlways = false;

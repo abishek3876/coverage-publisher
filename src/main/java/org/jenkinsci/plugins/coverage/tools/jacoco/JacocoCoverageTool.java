@@ -14,6 +14,7 @@ import org.jenkinsci.plugins.coverage.Utils;
 import org.jenkinsci.plugins.coverage.model.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.objectweb.asm.Type;
 
 import javax.annotation.Nonnull;
 import java.io.*;
@@ -120,7 +121,24 @@ public class JacocoCoverageTool extends CoverageTool {
             final ICounter bCounter = methodCoverage.getBranchCounter();
             final ICounter lCounter = methodCoverage.getLineCounter();
 
-            methodCoverages.add(new MethodCoverage(methodCoverage.getName()) {
+            StringBuilder nameBuilder = new StringBuilder(methodCoverage.getName());
+            if (!"<clinit>".equals(methodCoverage.getName())) {
+                nameBuilder.append("(");
+                Type[] arguments = Type.getArgumentTypes(methodCoverage.getDesc());
+                boolean tripper = true;
+                for (Type arg : arguments) {
+                    if (tripper) {
+                        tripper = false;
+                    } else {
+                        nameBuilder.append(", ");
+                    }
+                    String className = arg.getClassName();
+                    className = className.substring(className.lastIndexOf(".") + 1);
+                    nameBuilder.append(className.replace("$", "."));
+                }
+                nameBuilder.append(")");
+            }
+            methodCoverages.add(new MethodCoverage(nameBuilder.toString()) {
                 @Override
                 @Nonnull
                 public CoverageCounter getCoverage(CoverageType coverageType) {

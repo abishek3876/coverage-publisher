@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { JTable, TableRow, TableCell, TableHeader } from '@jenkins-cd/design-language';
+import { JTable, TableRow, TableCell, TableHeader, TableHeaderRow } from '@jenkins-cd/design-language';
 import { BarChart, Tooltip, Bar, XAxis, YAxis, ResponsiveContainer,
          LineChart, CartesianGrid, Legend, Line, Text
        } from 'recharts';
+
+import '../../src/main/js/CoverageTemplates.css'
 
 const color_good = "#78B037";
 const color_bad = "#D54C53";
@@ -15,26 +17,21 @@ const color_list = [
     "#78B037",
     "#F5A623",
     "#BD0FE1",
+    "#24B0D5",
+    "#949393",
+    "#8CC04F",
+    "#F6B44B",
 ];
 
 class CoverageTrendGraph extends Component {
     /*
         coverageTrend = [{"Build: "1.0.123", "Branch": 23.6, ...}, ...]
     */
-    current_color = 0;
-    getColor() {
-        var color = color_list[this.current_color];
-        this.current_color += 1;
-        if (this.current_color >= color_list.length) {
-            this.current_color = 0;
-        }
-        return color;
-    }
-
     render() {
+        const strokeColors = color_list.slice();
         return (
             <div className="coverage">
-                <h1>Code Coverage Trend</h1>
+                <h3>Code Coverage Trend</h3>
                 <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={this.props.coverageTrend}>
                         <XAxis dataKey="Build"/>
@@ -44,11 +41,25 @@ class CoverageTrendGraph extends Component {
                         <Legend />
                         {
                             Object.keys(this.props.coverageTrend[0]).filter(coverageType => (coverageType !== "Build")).map(
-                                coverageType => <Line dataKey={coverageType} stroke={this.getColor()}/>
+                                coverageType => <Line dataKey={coverageType} stroke={strokeColors.shift() || "#4A4A4A"}/>
                             )
                         }
                     </LineChart>
                 </ResponsiveContainer>
+            </div>
+        );
+    }
+}
+
+class CoverageSummary extends Component {
+    /*
+        coverageSummary = {"Branch": {covered: 4, missed: 5}, ...}
+    */
+    render() {
+        return (
+            <div className="coverage">
+                <h3>Code Coverage Summary</h3>
+                <CoverageSummaryTable coverageSummary={this.props.coverageSummary}/>
             </div>
         );
     }
@@ -60,23 +71,20 @@ class CoverageSummaryTable extends Component {
     */
     render() {
         const columns = [
-            JTable.column(15, "", false), // Coverage Type
+            JTable.column(50, "", false), // Coverage Type
             JTable.column(30, "", true) // Coverage Bar
         ];
         return (
-            <div className="coverage">
-                <h1>Code Coverage Summary</h1>
-                <JTable columns={columns}>
-                    {
-                        Object.keys(this.props.coverageSummary).map( coverageType =>
-                            <TableRow>
-                                <TableCell>{coverageType}</TableCell>
-                                <CoverageGraphCell coverageData={this.props.coverageSummary[coverageType]} />
-                            </TableRow>
-                        )
-                    }
-                </JTable>
-            </div>
+            <JTable columns={columns}>
+                {
+                    Object.keys(this.props.coverageSummary).map( coverageType =>
+                        <TableRow>
+                            <TableCell>{coverageType}</TableCell>
+                            <CoverageGraphCell coverageData={this.props.coverageSummary[coverageType]} />
+                        </TableRow>
+                    )
+                }
+            </JTable>
         );
     }
 }
@@ -118,4 +126,86 @@ class CoverageGraphCell extends Component {
     }
 }
 
-ReactDOM.render(<CoverageTemplates />, document.getElementById("coverage"));
+class CoverageData extends Component {
+    /*
+        coverageData = {"name": "Report", "coverageSummary": {}, "children": {}...}
+    */
+    renderDataTable() {
+        if (this.props.coverageData.children.data.length > 0) {
+            const columns = Object.keys(this.props.coverageData.children.data[0].coverageSummary);
+            var tableColumns = [
+                JTable.column(250, "NAME", false)
+            ];
+            columns.forEach( column =>
+                tableColumns.push(JTable.column(100, column, true))
+            );
+            const isRefed = this.props.coverageData.children.isRefed;
+
+            if (isRefed) {
+                return (
+                    <div>
+                        <h3>{this.props.coverageData.children.type}</h3>
+                        <JTable columns={tableColumns}>
+                            <TableHeaderRow/>
+                            {
+                                this.props.coverageData.children.data.map( child =>
+                                    <TableRow href={'?path=' + this.props.coverageData.name + '&name=' + child.name}>
+                                        <TableCell>{child.name}</TableCell>
+                                        {
+                                            columns.map( column =>
+                                                <CoverageGraphCell coverageData={child.coverageSummary[column]} />
+                                            )
+                                        }
+                                    </TableRow>
+                                )
+                            }
+                        </JTable>
+                    </div>
+                );
+            } else {
+                return (
+                    <div>
+                        <h3>{this.props.coverageData.children.type}</h3>
+                        <JTable columns={tableColumns}>
+                            <TableHeaderRow/>
+                            {
+                                this.props.coverageData.children.data.map( child =>
+                                    <TableRow>
+                                        <TableCell>{child.name}</TableCell>
+                                        {
+                                            columns.map( column =>
+                                                <CoverageGraphCell coverageData={child.coverageSummary[column]} />
+                                            )
+                                        }
+                                    </TableRow>
+                                )
+                            }
+                        </JTable>
+                    </div>
+                );
+            }
+        }
+    }
+
+    render() {
+        return (
+            <div className="coverage">
+                <h1>{this.props.coverageData.name}</h1>
+                <CoverageSummaryTable coverageSummary={this.props.coverageData.coverageSummary}/>
+                {this.renderDataTable()}
+            </div>
+        );
+    }
+}
+
+global.renderCoverageSummary = function(coverageSummary) {
+    ReactDOM.render(<CoverageSummary coverageSummary={coverageSummary} />, document.getElementById("coverage"));
+}
+
+global.renderCoverageTrend = function(coverageTrend) {
+    ReactDOM.render(<CoverageTrendGraph coverageTrend={coverageTrend} />, document.getElementById("coverage"));
+}
+
+global.renderCoverageData = function(coverageData) {
+    ReactDOM.render(<CoverageData coverageData={coverageData} />, document.getElementById("coverage"));
+}
