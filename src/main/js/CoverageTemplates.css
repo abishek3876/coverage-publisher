@@ -86,5 +86,12 @@ a.JTable-cell:hover,
   font-size: 15px !important;
 }
 .coverage-code {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+.coverage-code td {
   font-family: Consolas, Monaco, monospace !important;
+  font-size: 15px !important;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #FFFFFF;
 }

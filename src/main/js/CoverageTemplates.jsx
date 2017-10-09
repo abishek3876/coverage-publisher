@@ -75,7 +75,7 @@ class CoverageSummaryTable extends Component {
             JTable.column(30, "", true) // Coverage Bar
         ];
         return (
-            <JTable columns={columns}>
+            <JTable className="coverage" columns={columns}>
                 {
                     Object.keys(this.props.coverageSummary).map( coverageType =>
                         <TableRow>
@@ -143,7 +143,7 @@ class CoverageData extends Component {
 
             if (isRefed) {
                 return (
-                    <div>
+                    <div className="coverage">
                         <h3>{this.props.coverageData.children.type}</h3>
                         <JTable columns={tableColumns}>
                             <TableHeaderRow/>
@@ -164,7 +164,7 @@ class CoverageData extends Component {
                 );
             } else {
                 return (
-                    <div>
+                    <div className="coverage">
                         <h3>{this.props.coverageData.children.type}</h3>
                         <JTable columns={tableColumns}>
                             <TableHeaderRow/>
@@ -187,12 +187,57 @@ class CoverageData extends Component {
         }
     }
 
+    getBackgroundColor(line) {
+        switch(line[1]) {
+            case 0:
+                return color_bad;
+            case 1:
+                return color_good;
+            case 2:
+                return color_warn;
+            default:
+                return "";
+        }
+    }
+
+    getBranchCounters(line) {
+        if (line[2] != 0 || line[3] != 0) {
+            return (
+                <td><span style={{color: color_good}}>{line[2]}</span>/<span style={{color: color_bad}}>{line[3]}</span></td>
+            );
+        }
+    }
+
+    renderSourceFile() {
+        if (this.props.coverageData.sourceFile) {
+            var lineNo = 1;
+            return (
+                <pre>
+                    <table className="coverage-code">
+                        <tbody>
+                        {
+                            this.props.coverageData.sourceFile.map( line =>
+                                <tr>
+                                    <td style={{color: "rgba(255, 255, 255, 0.5)"}}>{lineNo++}</td>
+                                    <td style={{backgroundColor: this.getBackgroundColor(line)}}>{line[0]}</td>
+                                    {this.getBranchCounters(line)}
+                                </tr>
+                            )
+                        }
+                        </tbody>
+                    </table>
+                </pre>
+            );
+        }
+    }
+
     render() {
         return (
-            <div className="coverage">
-                <h1>{this.props.coverageData.name}</h1>
+            <div>
+                <h1 className="coverage">{this.props.coverageData.name}</h1>
                 <CoverageSummaryTable coverageSummary={this.props.coverageData.coverageSummary}/>
                 {this.renderDataTable()}
+                {this.renderSourceFile()}
             </div>
         );
     }

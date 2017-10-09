@@ -61,7 +61,7 @@ public class ReportRenderer {
                     }
                 }
             }
-            return coverageJSON.toString().replace("\\","\\\\");
+            return coverageJSON.toString().replace("\\", "\\\\");
         }
     }
 }

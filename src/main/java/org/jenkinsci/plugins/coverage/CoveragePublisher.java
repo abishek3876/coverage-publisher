@@ -225,7 +225,7 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
             ClassCoverage classCoverage = (ClassCoverage) coverage;
             String sourceFilePath = classCoverage.getSourceFilePath();
             if (sourceFilePath != null) {
-                sourceFilePath = directory.getParentFile().getParentFile().getName() + File.separator + directory.getParentFile().getName() + File.separator + sourceFilePath;
+                sourceFilePath = directory.getParentFile().getParentFile().getName() + "/" + directory.getParentFile().getName() + "/" + sourceFilePath;
                 summaryJson.put("sourceFilePath", sourceFilePath);
             }
         }
