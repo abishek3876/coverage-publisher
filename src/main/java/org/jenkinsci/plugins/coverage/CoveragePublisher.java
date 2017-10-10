@@ -116,7 +116,7 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
         final List<ToolCoverage> toolCoverages = new ArrayList<>();
         for (final CoverageTool tool : coverageTools) {
             try {
-                ToolCoverage toolCoverage = /*launcher.getChannel().call(new Callable<ToolCoverage, Exception>() {
+                ToolCoverage toolCoverage = launcher.getChannel().call(new Callable<ToolCoverage, Exception>() {
                     @Override
                     public void checkRoles(RoleChecker checker) throws SecurityException {
                         // No role checking for now.
@@ -126,7 +126,7 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
                     public ToolCoverage call() throws Exception {
                         return tool.perform(envVars, workspace, logger);
                     }
-                });*/tool.perform(envVars, workspace, logger);
+                });
                 toolCoverages.add(toolCoverage);
                 saveSourceFiles(coverageDirectory, workspace, toolCoverage, logger);
             } catch (Exception e) {

@@ -9,6 +9,7 @@ import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.interceptor.Interceptor;
+import org.springframework.web.util.HtmlUtils;
 
 import javax.servlet.ServletException;
 import java.io.*;
@@ -37,7 +38,7 @@ public class ReportRenderer {
             }
         }
         if (name != null && !name.isEmpty()) {
-            coveragePath.append(File.separator).append(name);
+            coveragePath.append(File.separator).append(Utils.normalizeForFileName(name));
         }
         coveragePath.append(File.separator).append(CoveragePublisher.SUMMARY_FILE);
         File coverageFile = new File(run.getRootDir(), coveragePath.toString());
@@ -61,7 +62,8 @@ public class ReportRenderer {
                     }
                 }
             }
-            return coverageJSON.toString().replace("\\", "\\\\");
+            return coverageJSON.toString().replace("\\", "\\\\")
+                    .replace("'", "\\'");
         }
     }
 }

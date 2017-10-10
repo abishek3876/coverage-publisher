@@ -212,21 +212,19 @@ class CoverageData extends Component {
         if (this.props.coverageData.sourceFile) {
             var lineNo = 1;
             return (
-                <pre>
-                    <table className="coverage-code">
-                        <tbody>
-                        {
-                            this.props.coverageData.sourceFile.map( line =>
-                                <tr>
-                                    <td style={{color: "rgba(255, 255, 255, 0.5)"}}>{lineNo++}</td>
-                                    <td style={{backgroundColor: this.getBackgroundColor(line)}}>{line[0]}</td>
-                                    {this.getBranchCounters(line)}
-                                </tr>
-                            )
-                        }
-                        </tbody>
-                    </table>
-                </pre>
+                <table className="coverage-code">
+                    <tbody>
+                    {
+                        this.props.coverageData.sourceFile.map( line =>
+                            <tr>
+                                <td style={{color: "rgba(255, 255, 255, 0.5)"}}>{lineNo++}</td>
+                                <td style={{backgroundColor: this.getBackgroundColor(line)}}>{line[0]}</td>
+                                {this.getBranchCounters(line)}
+                            </tr>
+                        )
+                    }
+                    </tbody>
+                </table>
             );
         }
     }
@@ -234,7 +232,7 @@ class CoverageData extends Component {
     render() {
         return (
             <div>
-                <h1 className="coverage">{this.props.coverageData.name}</h1>
+                <h2 className="coverage">{this.props.coverageData.name}</h2>
                 <CoverageSummaryTable coverageSummary={this.props.coverageData.coverageSummary}/>
                 {this.renderDataTable()}
                 {this.renderSourceFile()}
