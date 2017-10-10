@@ -77,6 +77,7 @@ public class CoverageBuildAction implements HealthReportingAction, StaplerProxy,
     }
 
     public String getCoverageSummaryJSON() {
-        return new JSONObject(this.coverageSummary).toString();
+        return new JSONObject(this.coverageSummary).toString().replace("\\", "\\\\")
+                .replace("'", "\\'");
     }
 }

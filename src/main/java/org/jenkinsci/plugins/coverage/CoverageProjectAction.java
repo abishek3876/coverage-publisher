@@ -52,6 +52,7 @@ public class CoverageProjectAction implements Action {
     }
 
     public String getCoverageTrendJSON() {
-        return new JSONArray(coverageTrend).toString();
+        return new JSONArray(coverageTrend).toString().replace("\\", "\\\\")
+                .replace("'", "\\'");
     }
 }
