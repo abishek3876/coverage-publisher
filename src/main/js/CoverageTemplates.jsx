@@ -1,8 +1,8 @@
-import React, { Component } from 'react';
+import { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { JTable, TableRow, TableCell, TableHeader, TableHeaderRow } from '@jenkins-cd/design-language';
+import { JTable, TableRow, TableCell, TableHeaderRow } from '@jenkins-cd/design-language';
 import { BarChart, Tooltip, Bar, XAxis, YAxis, ResponsiveContainer,
-         LineChart, CartesianGrid, Legend, Line, Text
+         LineChart, CartesianGrid, Legend, Line
        } from 'recharts';
 
 import '../../src/main/js/CoverageTemplates.css'
