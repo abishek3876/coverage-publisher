@@ -1,11 +1,11 @@
-import { Component } from 'react';
+import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { JTable, TableRow, TableCell, TableHeaderRow } from '@jenkins-cd/design-language';
+import { JTable } from './JTable';
+import { TableRow, TableHeaderRow } from './TableRow';
+import { TableCell } from './TableCell';
 import { BarChart, Tooltip, Bar, XAxis, YAxis, ResponsiveContainer,
          LineChart, CartesianGrid, Legend, Line
        } from 'recharts';
-
-import '../../src/main/js/CoverageTemplates.css'
 
 const color_good = "#78B037";
 const color_bad = "#D54C53";
