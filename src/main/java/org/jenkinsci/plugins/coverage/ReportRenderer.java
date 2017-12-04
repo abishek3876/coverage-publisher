@@ -1,32 +1,36 @@
 package org.jenkinsci.plugins.coverage;
 
+import hudson.model.Api;
 import hudson.model.Run;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.Stapler;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
-import org.kohsuke.stapler.interceptor.Interceptor;
-import org.springframework.web.util.HtmlUtils;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
-import javax.servlet.ServletException;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Map;
 
+@ExportedBean
 public class ReportRenderer {
     private static final String PARAMETER_PATH = "path";
     private static final String PARAMETER_NAME = "name";
 
     public final Run<?, ?> run;
-    public final String coverageDataJSON;
+
+    @Exported
+    public final Map<String, Object> coverageDataJSON;
 
     public ReportRenderer(Run<?, ?> run) {
         this.run = run;
         this.coverageDataJSON = getCoverageDataJSON();
     }
 
-    private String getCoverageDataJSON() {
+    private Map<String, Object> getCoverageDataJSON() {
         String path = Stapler.getCurrentRequest().getParameter(PARAMETER_PATH);
         String name = Stapler.getCurrentRequest().getParameter(PARAMETER_NAME);
 
@@ -43,13 +47,13 @@ public class ReportRenderer {
         coveragePath.append(File.separator).append(CoveragePublisher.SUMMARY_FILE);
         File coverageFile = new File(run.getRootDir(), coveragePath.toString());
         try {
-            return getCoverageData(new File(run.getRootDir(), CoveragePublisher.COVERAGE_PATH), coverageFile);
+            return getCoverageData(new File(run.getRootDir(), CoveragePublisher.COVERAGE_PATH), coverageFile).toMap();
         } catch(IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private String getCoverageData(File coverageRootDir, File coverageFile) throws IOException {
+    private JSONObject getCoverageData(File coverageRootDir, File coverageFile) throws IOException {
         try(BufferedReader reader = new BufferedReader(new FileReader(coverageFile))) {
             JSONObject coverageJSON = new JSONObject(new JSONTokener(reader));
             if (coverageJSON.has("sourceFilePath")) {
@@ -62,8 +66,11 @@ public class ReportRenderer {
                     }
                 }
             }
-            return coverageJSON.toString().replace("\\", "\\\\")
-                    .replace("'", "\\'");
+            return coverageJSON;
         }
+    }
+
+    public Api getApi() {
+        return new Api(this);
     }
 }

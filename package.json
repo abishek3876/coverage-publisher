@@ -10,6 +10,7 @@
     "babel-preset-stage-0": "^6.24.1",
     "browserify": "^14.4.0",
     "browserify-css": "^0.12.0",
+    "envify": "^4.1.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^7.0.0",
     "gulp-sourcemaps": "^2.6.1",
@@ -19,6 +20,6 @@
   "dependencies": {
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
-    "recharts": "^1.0.0-apha.5"
+    "recharts": "^1.0.0-beta.0"
   }
 }

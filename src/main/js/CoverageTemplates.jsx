@@ -241,14 +241,22 @@ class CoverageData extends Component {
     }
 }
 
-global.renderCoverageSummary = function(coverageSummary) {
-    ReactDOM.render(<CoverageSummary coverageSummary={coverageSummary} />, document.getElementById("coverage"));
+global.renderCoverageSummary = function() {
+    Q.getJSON("coverage/api/json", function (data) {
+        ReactDOM.render(<CoverageSummary coverageSummary={data} />, document.getElementById("coverage"));
+    });
 }
 
-global.renderCoverageTrend = function(coverageTrend) {
-    ReactDOM.render(<CoverageTrendGraph coverageTrend={coverageTrend} />, document.getElementById("coverage"));
+global.renderCoverageTrend = function(isProjectPage) {
+    var url = "api/json";
+    url = isProjectPage? "coverage/" + url : url;
+    Q.getJSON(url, function (data) {
+        ReactDOM.render(<CoverageTrendGraph coverageTrend={data.coverageTrend} />, document.getElementById("coverage"));
+    });
 }
 
-global.renderCoverageData = function(coverageData) {
-    ReactDOM.render(<CoverageData coverageData={coverageData} />, document.getElementById("coverage"));
+global.renderCoverageData = function() {
+    Q.getJSON("api/json", function (data) {
+        ReactDOM.render(<CoverageData coverageData={data} />, document.getElementById("coverage"));
+    });
 }

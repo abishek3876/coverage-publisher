@@ -36,10 +36,12 @@ public class SourceFileCoverage {
 
     public static class Line {
         private final CoverageStatus coverageStatus;
+        private final CoverageCounter instructionCounter;
         private final CoverageCounter branchCounter;
 
-        public Line(@Nonnull CoverageStatus coverageStatus, @Nonnull CoverageCounter branchCounter) {
+        public Line(@Nonnull CoverageStatus coverageStatus, @Nonnull CoverageCounter instructionCounter, @Nonnull CoverageCounter branchCounter) {
             this.coverageStatus = coverageStatus;
+            this.instructionCounter = instructionCounter;
             this.branchCounter = branchCounter;
         }
 
@@ -51,6 +53,11 @@ public class SourceFileCoverage {
         @Nonnull
         public CoverageCounter getBranchCounter() {
             return this.branchCounter;
+        }
+
+        @Nonnull
+        public CoverageCounter getInstructionCounter() {
+            return this.instructionCounter;
         }
     }
 }

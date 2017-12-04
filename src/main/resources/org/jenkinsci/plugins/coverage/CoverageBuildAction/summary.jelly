@@ -6,5 +6,5 @@
         <div id="coverage"></div>
     </t:summary>
     <st:adjunct includes="org.jenkins.ui.jsmodules.coverage-publisher.CoverageTemplates"/>
-    <script type="text/javascript">renderCoverageSummary(JSON.parse('${it.coverageSummaryJSON}'));</script>
+    <script type="text/javascript">renderCoverageSummary();</script>
 </j:jelly>

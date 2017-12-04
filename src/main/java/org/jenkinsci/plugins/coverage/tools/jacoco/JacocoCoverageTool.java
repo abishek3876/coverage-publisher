@@ -84,8 +84,10 @@ public class JacocoCoverageTool extends CoverageTool {
                                 break;
                         }
                         ICounter branchCounter = lineCoverage.getBranchCounter();
+                        ICounter instructionCounter = lineCoverage.getInstructionCounter();
                         CoverageCounter bCounter = new CoverageCounter(branchCounter.getCoveredCount(), branchCounter.getMissedCount());
-                        lines.add(new SourceFileCoverage.Line(coverageStatus, bCounter));
+                        CoverageCounter iCounter = new CoverageCounter(instructionCounter.getCoveredCount(), instructionCounter.getMissedCount());
+                        lines.add(new SourceFileCoverage.Line(coverageStatus, iCounter, bCounter));
                     }
                     sourceFileCoverages.add(new SourceFileCoverage(filePath, lines));
                 }
@@ -120,6 +122,7 @@ public class JacocoCoverageTool extends CoverageTool {
         for (final IMethodCoverage methodCoverage : classCoverage.getMethods()) {
             final ICounter bCounter = methodCoverage.getBranchCounter();
             final ICounter lCounter = methodCoverage.getLineCounter();
+            final ICounter iCounter = methodCoverage.getInstructionCounter();
 
             StringBuilder nameBuilder = new StringBuilder(methodCoverage.getName());
             if (!"<clinit>".equals(methodCoverage.getName())) {
@@ -143,6 +146,8 @@ public class JacocoCoverageTool extends CoverageTool {
                 @Nonnull
                 public CoverageCounter getCoverage(CoverageType coverageType) {
                     switch (coverageType) {
+                        case INSTRUCTION:
+                            return new CoverageCounter(iCounter.getCoveredCount(), iCounter.getMissedCount());
                         case BRANCH:
                             return new CoverageCounter(bCounter.getCoveredCount(), bCounter.getMissedCount());
                         case LINE:

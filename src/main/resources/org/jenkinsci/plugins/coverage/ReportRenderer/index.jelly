@@ -8,6 +8,6 @@
             <div id="coverage"></div>
         </l:main-panel>
         <st:adjunct includes="org.jenkins.ui.jsmodules.coverage-publisher.CoverageTemplates"/>
-        <script type="text/javascript">renderCoverageData(JSON.parse('${it.coverageDataJSON}'));</script>
+        <script type="text/javascript">renderCoverageData();</script>
     </l:layout>
 </j:jelly>

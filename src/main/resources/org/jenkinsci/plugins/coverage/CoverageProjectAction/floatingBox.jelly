@@ -4,5 +4,5 @@
          xmlns:f="/lib/form" xmlns:i="jelly:fmt">
     <div style="width: 600px" id="coverage"></div>
     <st:adjunct includes="org.jenkins.ui.jsmodules.coverage-publisher.CoverageTemplates"/>
-    <script type="text/javascript">renderCoverageTrend(JSON.parse('${action.coverageTrendJSON}'));</script>
+    <script type="text/javascript">renderCoverageTrend(true);</script>
 </j:jelly>

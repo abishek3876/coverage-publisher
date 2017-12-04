@@ -1,19 +1,27 @@
 package org.jenkinsci.plugins.coverage;
 
 import hudson.model.Action;
+import hudson.model.Api;
 import hudson.model.Job;
 import hudson.model.Run;
 import org.jenkinsci.plugins.coverage.model.CoverageType;
-import org.json.JSONArray;
-import org.kohsuke.stapler.StaplerProxy;
-import org.kohsuke.stapler.bind.JavaScriptMethod;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+@ExportedBean
 public class CoverageProjectAction implements Action {
     public final Job<?,?> job;
-    private final List<Map<String, Serializable>> coverageTrend;
+
+    @SuppressWarnings("WeakerAccess")
+    @Exported
+    public final List<Map<String, Serializable>> coverageTrend;
 
     /*package*/ CoverageProjectAction(Job<?,?> job) {
         this.job = job;
@@ -28,6 +36,7 @@ public class CoverageProjectAction implements Action {
             coverageData.put("Build", run.getDisplayName());
             for (CoverageType type : CoverageType.values()) {
                 float coveredPercent = CoverageThreshold.getCoveredPercent(runAction.getCoverageSummary().get(type));
+                coveredPercent = Float.isNaN(coveredPercent)? 0 : coveredPercent;
                 coverageData.put(type.name(), Float.valueOf(String.format("%.1f", coveredPercent)));
             }
             coverageTrend.add(Collections.unmodifiableMap(coverageData));
@@ -51,8 +60,7 @@ public class CoverageProjectAction implements Action {
         return CoverageBuildAction.COVERAGE_URL;
     }
 
-    public String getCoverageTrendJSON() {
-        return new JSONArray(coverageTrend).toString().replace("\\", "\\\\")
-                .replace("'", "\\'");
+    public Api getApi() {
+        return new Api(this);
     }
 }

@@ -172,11 +172,15 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
                         if (i < availableLineSize) {
                             SourceFileCoverage.Line coverageLine = sourceFileCoverage.getLines().get(i);
                             lineData.put(coverageLine.getCoverageStatus().value);
+                            lineData.put(coverageLine.getInstructionCounter().getCovered());
+                            lineData.put(coverageLine.getInstructionCounter().getMissed());
                             lineData.put(coverageLine.getBranchCounter().getCovered());
                             lineData.put(coverageLine.getBranchCounter().getMissed());
                             i++;
                         } else {
                             lineData.put(SourceFileCoverage.CoverageStatus.NOT_SOURCE.value);
+                            lineData.put(CoverageCounter.UNKNOWN_COUNTER.getCovered());
+                            lineData.put(CoverageCounter.UNKNOWN_COUNTER.getMissed());
                             lineData.put(CoverageCounter.UNKNOWN_COUNTER.getCovered());
                             lineData.put(CoverageCounter.UNKNOWN_COUNTER.getMissed());
                         }
@@ -269,7 +273,6 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
         @Override
-        @SuppressWarnings("rawtypes")
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {
             return true;
         }

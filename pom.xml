@@ -84,6 +84,11 @@
             <artifactId>structs</artifactId>
             <version>1.10</version>
         </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>jquery</artifactId>
+            <version>1.12.4-0</version>
+        </dependency>
 
         <dependency>
             <groupId>org.jacoco</groupId>
