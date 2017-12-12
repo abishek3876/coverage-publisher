@@ -16,7 +16,7 @@ public class BuildCoverage implements Coverage {
     @Override
     @Nonnull
     public String getName() {
-        return Messages.CoveragePublisher_CoverageReport();
+        return "";
     }
 
     @Nonnull

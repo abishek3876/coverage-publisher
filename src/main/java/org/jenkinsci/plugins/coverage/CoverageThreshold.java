@@ -47,12 +47,14 @@ import java.util.Map;
     private final Map<CoverageType, ThresholdValues> thresholdValuesMap = new HashMap<>();
 
     public CoverageThreshold(@Nonnull EnvVars envVars,
+                             String minInstructionThreshold, String maxInstructionThreshold,
                              String minBranchThreshold, String maxBranchThreshold,
                              String minLineThreshold, String maxLineThreshold,
                              String minMethodThreshold, String maxMethodThreshold,
                              String minClassThreshold, String maxClassThreshold) {
 
         this.envVars = envVars;
+        thresholdValuesMap.put(CoverageType.INSTRUCTION, getThresholdValues(minInstructionThreshold, maxInstructionThreshold));
         thresholdValuesMap.put(CoverageType.BRANCH, getThresholdValues(minBranchThreshold, maxBranchThreshold));
         thresholdValuesMap.put(CoverageType.LINE, getThresholdValues(minLineThreshold, maxLineThreshold));
         thresholdValuesMap.put(CoverageType.METHOD, getThresholdValues(minMethodThreshold, maxMethodThreshold));
@@ -95,7 +97,8 @@ import java.util.Map;
 
     /*package*/ static float getCoveredPercent(CoverageCounter counter) {
         try {
-            return ((float) counter.getCovered() / (counter.getCovered() + counter.getMissed())) * 100;
+            float result = ((float) counter.getCovered() / (counter.getCovered() + counter.getMissed())) * 100;
+            return Float.isNaN(result)? 0 : result;
         } catch (Exception e) {
             return 0;
         }

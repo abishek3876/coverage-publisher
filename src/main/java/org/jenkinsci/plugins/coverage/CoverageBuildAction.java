@@ -1,16 +1,15 @@
 package org.jenkinsci.plugins.coverage;
 
-import hudson.model.*;
+import hudson.model.Action;
+import hudson.model.HealthReport;
+import hudson.model.HealthReportingAction;
+import hudson.model.Run;
+import jenkins.model.RunAction2;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.plugins.coverage.model.CoverageCounter;
 import org.jenkinsci.plugins.coverage.model.CoverageType;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.kohsuke.stapler.StaplerProxy;
 
-import jenkins.model.RunAction2;
-
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -74,10 +73,5 @@ public class CoverageBuildAction implements HealthReportingAction, StaplerProxy,
 
     public Map<CoverageType, CoverageCounter> getCoverageSummary() {
         return this.coverageSummary;
-    }
-
-    public String getCoverageSummaryJSON() {
-        return new JSONObject(this.coverageSummary).toString().replace("\\", "\\\\")
-                .replace("'", "\\'");
     }
 }

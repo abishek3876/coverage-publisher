@@ -4,6 +4,7 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.jacoco.core.analysis.*;
 import org.jacoco.core.data.ExecutionDataReader;
 import org.jacoco.core.data.ExecutionDataStore;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class JacocoCoverageTool extends CoverageTool {
 
     private static final String TOOL_NAME = "Jacoco";
@@ -39,6 +41,8 @@ public class JacocoCoverageTool extends CoverageTool {
     public String includePattern = "**";
     @DataBoundSetter
     public String excludePattern = "";
+    @DataBoundSetter
+    public String coverageName = "";
 
     @Override
     protected ToolCoverage perform(EnvVars envVars, FilePath workspace, PrintStream logger) throws Exception {
@@ -46,7 +50,9 @@ public class JacocoCoverageTool extends CoverageTool {
         IBundleCoverage bundleCoverage = analyzeStructure(executionDataStore, workspace, envVars);
         List<FilePath> sourceDirs = Utils.resolveDirectories(sourcePattern, workspace, envVars);
         List<PackageCoverage> packageCoverages = getPackageCoverageList(sourceDirs, bundleCoverage);
-        return new ToolCoverage(TOOL_NAME, packageCoverages);
+
+        String name = StringUtils.isEmpty(coverageName)? TOOL_NAME : coverageName;
+        return new ToolCoverage(name, packageCoverages);
     }
 
     private List<PackageCoverage> getPackageCoverageList(List<FilePath> sourceDirs, IBundleCoverage bundleCoverage) throws IOException, InterruptedException {

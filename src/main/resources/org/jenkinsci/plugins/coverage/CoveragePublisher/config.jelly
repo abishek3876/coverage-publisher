@@ -18,9 +18,11 @@
             <col width="11%"/>
             <col width="11%"/>
             <col width="11%"/>
+            <col width="11%"/>
             <thead>
                 <tr>
                     <td width="12%"/>
+                    <td width="11%">${%instructionPercent}</td>
                     <td width="11%">${%branchPercent}</td>
                     <td width="11%">${%linePercent}</td>
                     <td width="11%">${%methodPercent}</td>
@@ -33,6 +35,9 @@
                         <img src="${rootURL}/images/16x16/health-80plus.gif" alt="100%"
                              title="${%thresholdMaxTitle}"/>
                     </th>
+                    <td>
+                        <f:textbox field="thresholdInstructionMax" default="0"/>
+                    </td>
                     <td>
                         <f:textbox field="thresholdBranchMax" default="0"/>
                     </td>
@@ -51,6 +56,9 @@
                         <img src="${rootURL}/images/16x16/health-00to19.gif" alt="0%"
                              title="${%thresholdMinTitle}"/>
                     </th>
+                    <td>
+                        <f:textbox field="thresholdInstructionMin" default="0"/>
+                    </td>
                     <td>
                         <f:textbox field="thresholdBranchMin" default="0"/>
                     </td>
@@ -78,9 +86,11 @@
             <col width="11%"/>
             <col width="11%"/>
             <col width="11%"/>
+            <col width="11%"/>
             <thead>
                 <tr>
                     <td width="12%"/>
+                    <td width="11%">${%instructionPercent}</td>
                     <td width="11%">${%branchPercent}</td>
                     <td width="11%">${%linePercent}</td>
                     <td width="11%">${%methodPercent}</td>
@@ -93,6 +103,9 @@
                         <img src="${rootURL}/images/16x16/health-00to19.gif" alt="0%"
                              title="${%thresholdMinTitle}"/>
                     </th>
+                    <td>
+                        <f:textbox field="deltaInstruction" default="0"/>
+                    </td>
                     <td>
                         <f:textbox field="deltaBranch" default="0"/>
                     </td>

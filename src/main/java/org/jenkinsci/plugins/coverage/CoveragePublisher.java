@@ -11,6 +11,7 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import jenkins.tasks.SimpleBuildStep;
+import org.codehaus.plexus.util.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.coverage.model.*;
 import org.jenkinsci.remoting.RoleChecker;
@@ -22,6 +23,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 import javax.annotation.Nonnull;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +31,7 @@ import java.util.Map;
 public class CoveragePublisher extends Recorder implements SimpleBuildStep {
 
     /*package*/ static final String COVERAGE_PATH = "coverage";
-    /*package*/ static final String SUMMARY_FILE = "summary.coverage";
+    /*package*/ static final String COVERAGE_FILE_SUFFIX = ".coverage";
 
     @DataBoundSetter
     public boolean runAlways = false;
@@ -38,6 +40,10 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
     @DataBoundSetter
     public boolean changeBuildStatusOnDeltaViolation = false;
 
+    @DataBoundSetter
+    public String thresholdInstructionMin = "0";
+    @DataBoundSetter
+    public String thresholdInstructionMax = "0";
     @DataBoundSetter
     public String thresholdBranchMin = "0";
     @DataBoundSetter
@@ -55,6 +61,8 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
     @DataBoundSetter
     public String thresholdClassMax = "0";
 
+    @DataBoundSetter
+    public String deltaInstruction = "0";
     @DataBoundSetter
     public String deltaBranch = "0";
     @DataBoundSetter
@@ -79,7 +87,7 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
     public void perform(@Nonnull Run<?, ?> run, @Nonnull final FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener)
             throws InterruptedException, IOException {
         final PrintStream logger = listener.getLogger();
-        if (!runAlways && (run.getResult() == Result.FAILURE || run.getResult() == Result.ABORTED)) {
+        if (run.getResult() == Result.ABORTED || (!runAlways && run.getResult() == Result.FAILURE)) {
             logger.println("[CodeCoverage] Skipping coverage publishing because of build result");
             return;
         }
@@ -94,7 +102,7 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
 
         final EnvVars envVars = Utils.getEnvVars(run, listener);
 
-        CoverageThreshold coverageThreshold = new CoverageThreshold(envVars, thresholdBranchMin, thresholdBranchMax,
+        CoverageThreshold coverageThreshold = new CoverageThreshold(envVars, thresholdInstructionMin, thresholdInstructionMax, thresholdBranchMin, thresholdBranchMax,
                 thresholdLineMin, thresholdLineMax, thresholdMethodMin, thresholdMethodMax,
                 thresholdClassMin, thresholdClassMax);
 
@@ -135,7 +143,7 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
             }
         }
         BuildCoverage buildCoverage = new BuildCoverage(toolCoverages);
-        storeCoverage(logger, coverageDirectory, buildCoverage, "");
+        storeCoverage(logger, coverageDirectory, Collections.<String>emptyList(), buildCoverage);
 
         int healthScore = coverageThreshold.getScoreForCoverage(buildCoverage);
 
@@ -143,12 +151,14 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
         for (CoverageType type : CoverageType.values()) {
             buildCoverageSummary.put(type, buildCoverage.getCoverage(type));
         }
-        run.addAction(new CoverageBuildAction(buildCoverageSummary, healthScore));
 
-        if (deltaThreshold.getScoreForCoverage(buildCoverage) != 100) {
+        int deltaHealth = deltaThreshold.getScoreForCoverage(buildCoverage);
+        if (changeBuildStatusOnDeltaViolation && deltaHealth != 100) {
             logger.println("[Code Coverage] Delta thresholds not met. Failing build.");
             run.setResult(Result.FAILURE);
         }
+
+        run.addAction(new CoverageBuildAction(buildCoverageSummary, Math.min(healthScore, deltaHealth)));
     }
 
     private void saveSourceFiles(File coverageDirectory, FilePath workspace, ToolCoverage toolCoverage, PrintStream logger) throws IOException, InterruptedException {
@@ -162,11 +172,10 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
             for (SourceFileCoverage sourceFileCoverage : packageCoverage.getSourceFiles()) {
                 FilePath sourcePath = workspace.child(sourceFileCoverage.getFilePath());
                 JSONArray sourceFile = new JSONArray();
-                int i = 0;
-                int availableLineSize = sourceFileCoverage.getLines().size();
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(sourcePath.read()))) {
                     String line;
-                    while ((line = reader.readLine()) != null) {
+                    int availableLineSize = sourceFileCoverage.getLines().size();
+                    for (int i = 0; (line = reader.readLine()) != null; i++) {
                         JSONArray lineData = new JSONArray();
                         lineData.put(line);
                         if (i < availableLineSize) {
@@ -176,7 +185,6 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
                             lineData.put(coverageLine.getInstructionCounter().getMissed());
                             lineData.put(coverageLine.getBranchCounter().getCovered());
                             lineData.put(coverageLine.getBranchCounter().getMissed());
-                            i++;
                         } else {
                             lineData.put(SourceFileCoverage.CoverageStatus.NOT_SOURCE.value);
                             lineData.put(CoverageCounter.UNKNOWN_COUNTER.getCovered());
@@ -200,24 +208,27 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
         Map<CoverageType, CoverageCounter> lastCoverage = (previousAction == null)? null : previousAction.getCoverageSummary();
 
         if (lastCoverage == null) {
-            return new CoverageThreshold(envVars, "0", "0", "0", "0", "0", "0", "0", "0");
+            return new CoverageThreshold(envVars, "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         } else {
+            String instructionDelta = Float.toString(CoverageThreshold.getCoveredPercent(lastCoverage.get(CoverageType.INSTRUCTION)) - CoverageThreshold.getResolvedThreshold(envVars, deltaInstruction));
             String branchDelta = Float.toString(CoverageThreshold.getCoveredPercent(lastCoverage.get(CoverageType.BRANCH)) - CoverageThreshold.getResolvedThreshold(envVars, deltaBranch));
             String lineDelta = Float.toString(CoverageThreshold.getCoveredPercent(lastCoverage.get(CoverageType.LINE)) - CoverageThreshold.getResolvedThreshold(envVars, deltaLine));
             String methodDelta = Float.toString(CoverageThreshold.getCoveredPercent(lastCoverage.get(CoverageType.METHOD)) - CoverageThreshold.getResolvedThreshold(envVars, deltaMethod));
             String classDelta = Float.toString(CoverageThreshold.getCoveredPercent(lastCoverage.get(CoverageType.CLASS)) - CoverageThreshold.getResolvedThreshold(envVars, deltaClass));
-            return new CoverageThreshold(envVars, branchDelta, branchDelta, lineDelta, lineDelta, methodDelta, methodDelta, classDelta, classDelta);
+            return new CoverageThreshold(envVars, instructionDelta, instructionDelta, branchDelta, branchDelta, lineDelta, lineDelta, methodDelta, methodDelta, classDelta, classDelta);
         }
     }
 
-    private void storeCoverage(PrintStream logger, File directory, Coverage coverage, String namePrefix) throws IOException {
+    private void storeCoverage(PrintStream logger, final File coverageDirectory, List<String> path, Coverage coverage) throws IOException {
+        File directory = new File(coverageDirectory, StringUtils.join(path.iterator(), "/"));
         if (!directory.exists() && !directory.mkdirs()) {
             logger.println("[Code Coverage] ERROR: Unable to create directory: " + directory.getAbsolutePath());
             throw new IOException("Create directory failed");
         }
 
         JSONObject summaryJson = new JSONObject();
-        summaryJson.put("name", namePrefix + coverage.getName());
+        summaryJson.put("name", coverage.getName());
+        summaryJson.put("path", new JSONArray(path));
         summaryJson.put("coverageSummary", getCoverageSummaryJSon(coverage));
 
         JSONObject children = new JSONObject();
@@ -230,19 +241,19 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
             ClassCoverage classCoverage = (ClassCoverage) coverage;
             String sourceFilePath = classCoverage.getSourceFilePath();
             if (sourceFilePath != null) {
-                sourceFilePath = directory.getParentFile().getParentFile().getName() + "/" + directory.getParentFile().getName() + "/" + sourceFilePath;
                 summaryJson.put("sourceFilePath", sourceFilePath);
             }
         }
 
-        try (FileWriter summaryWriter = new FileWriter(new File(directory, SUMMARY_FILE))) {
+        try (FileWriter summaryWriter = new FileWriter(new File(directory, coverage.getName() + COVERAGE_FILE_SUFFIX))) {
             summaryJson.write(summaryWriter);
         }
 
         if (coverage.isChildrenRefed()) {
             for (Coverage childCoverage : coverage.getChildren()) {
-                File childDir = new File(directory, Utils.normalizeForFileName(childCoverage.getName()));
-                storeCoverage(logger, childDir, childCoverage, namePrefix + coverage.getName() + " >> ");
+                List<String> childPath = new ArrayList<>(path);
+                childPath.add(coverage.getName());
+                storeCoverage(logger, coverageDirectory, childPath, childCoverage);
             }
         }
     }

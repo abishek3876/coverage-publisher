@@ -36,7 +36,6 @@ public class CoverageProjectAction implements Action {
             coverageData.put("Build", run.getDisplayName());
             for (CoverageType type : CoverageType.values()) {
                 float coveredPercent = CoverageThreshold.getCoveredPercent(runAction.getCoverageSummary().get(type));
-                coveredPercent = Float.isNaN(coveredPercent)? 0 : coveredPercent;
                 coverageData.put(type.name(), Float.valueOf(String.format("%.1f", coveredPercent)));
             }
             coverageTrend.add(Collections.unmodifiableMap(coverageData));

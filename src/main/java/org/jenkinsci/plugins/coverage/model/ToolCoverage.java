@@ -5,18 +5,18 @@ import java.util.List;
 
 public class ToolCoverage implements Coverage {
 
-    private final String toolName;
+    private final String coverageName;
     private final List<PackageCoverage> packageCoverages;
 
-    public ToolCoverage(@Nonnull String toolName, @Nonnull List<PackageCoverage> packageCoverages) {
-        this.toolName = toolName;
+    public ToolCoverage(@Nonnull String coverageName, @Nonnull List<PackageCoverage> packageCoverages) {
+        this.coverageName = coverageName;
         this.packageCoverages = packageCoverages;
     }
 
     @Nonnull
     @Override
     public String getName() {
-        return this.toolName;
+        return this.coverageName;
     }
 
     @Nonnull

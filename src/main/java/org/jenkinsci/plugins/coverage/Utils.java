@@ -7,7 +7,6 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;
 import jenkins.MasterToSlaveFileCallable;
-import lib.TestTagLib;
 import org.codehaus.plexus.util.DirectoryScanner;
 
 import javax.annotation.Nonnull;
@@ -78,7 +77,7 @@ public final class Utils {
         private static final String DIR_SEP = "\\s*,\\s*";
         private final String input;
 
-        public ResolveDirPaths(String input) {
+        ResolveDirPaths(String input) {
             this.input = input;
         }
 

@@ -127,6 +127,10 @@ class CoverageGraphCell extends Component {
 }
 
 class CoverageData extends Component {
+    normalizeName(name) {
+        return name.toLowerCase().replace(/\W+/g, ".");
+    }
+
     /*
         coverageData = {"name": "Report", "coverageSummary": {}, "children": {}...}
     */
@@ -149,7 +153,7 @@ class CoverageData extends Component {
                             <TableHeaderRow/>
                             {
                                 this.props.coverageData.children.data.map( child =>
-                                    <TableRow href={'?path=' + this.props.coverageData.name + '&name=' + child.name}>
+                                    <TableRow href={this.normalizeName(child.name)}>
                                         <TableCell>{child.name}</TableCell>
                                         {
                                             columns.map( column =>
@@ -230,9 +234,17 @@ class CoverageData extends Component {
     }
 
     render() {
+        var name = "";
+        this.props.coverageData.path.filter(node => (node.length > 0)).forEach( node =>
+            name = node + " >> "
+        );
+        name = name + this.props.coverageData.name;
+        if (name.length == 0) {
+            name = "Code Coverage Report";
+        }
         return (
             <div>
-                <h2 className="coverage">{this.props.coverageData.name}</h2>
+                <h2 className="coverage">{name}</h2>
                 <CoverageSummaryTable coverageSummary={this.props.coverageData.coverageSummary}/>
                 {this.renderDataTable()}
                 {this.renderSourceFile()}
@@ -243,7 +255,7 @@ class CoverageData extends Component {
 
 global.renderCoverageSummary = function() {
     Q.getJSON("coverage/api/json", function (data) {
-        ReactDOM.render(<CoverageSummary coverageSummary={data} />, document.getElementById("coverage"));
+        ReactDOM.render(<CoverageSummary coverageSummary={data.coverageData.coverageSummary} />, document.getElementById("coverage"));
     });
 }
 
@@ -257,6 +269,6 @@ global.renderCoverageTrend = function(isProjectPage) {
 
 global.renderCoverageData = function() {
     Q.getJSON("api/json", function (data) {
-        ReactDOM.render(<CoverageData coverageData={data} />, document.getElementById("coverage"));
+        ReactDOM.render(<CoverageData coverageData={data.coverageData} />, document.getElementById("coverage"));
     });
 }

@@ -1,5 +1,8 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
+    <f:entry title="${%coverageName}">
+        <f:textbox field="coverageName" default=""/>
+    </f:entry>
     <f:entry title="${%sourcePattern}">
         <f:textbox field="sourcePattern" default="**/src/main/java"/>
     </f:entry>

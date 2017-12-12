@@ -3,16 +3,11 @@ package org.jenkinsci.plugins.coverage;
 import hudson.EnvVars;
 import hudson.ExtensionPoint;
 import hudson.FilePath;
-import hudson.Launcher;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
-import hudson.model.Run;
-import hudson.model.TaskListener;
-import org.jenkinsci.plugins.coverage.model.PackageCoverage;
 import org.jenkinsci.plugins.coverage.model.ToolCoverage;
 
 import java.io.PrintStream;
-import java.util.List;
 
 public abstract class CoverageTool extends AbstractDescribableImpl<CoverageTool> implements ExtensionPoint {
 
