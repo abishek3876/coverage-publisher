@@ -27,10 +27,11 @@ gulp.task('babelify', function() {
                 .pipe(gulp.dest('./dist/js'));
 });
 
-gulp.task('browserify', ['babelify'], function() {
+gulp.task('browserifyprod', ['babelify'], function() {
    return browserify(['./dist/js/CoverageTemplates.js', './src/main/js/CoverageTemplates.css'])
        .transform('browserify-css')
-       .transform(envify({_: 'purge', NODE_ENV: 'production'}))
+       .transform(envify({_: 'purge', NODE_ENV: 'production'}), {global: true})
+       .transform('uglifyify', { global: true  })
        .bundle()
        //Pass desired output filename to vinyl-source-stream
        .pipe(source('CoverageTemplates.js'))
@@ -38,8 +39,23 @@ gulp.task('browserify', ['babelify'], function() {
        .pipe(gulp.dest('./dist/js/bundle'));
 });
 
-gulp.task('default', ['browserify'], function() {
+gulp.task('default', ['browserifyprod'], function() {
     return gulp.src('./dist/js/bundle/CoverageTemplates.js')
         .pipe(uglify())
+        .pipe(gulp.dest('./target/classes/org/jenkins/ui/jsmodules/coverage-publisher'));
+});
+
+gulp.task('browserifydev', ['babelify'], function() {
+   return browserify(['./dist/js/CoverageTemplates.js', './src/main/js/CoverageTemplates.css'])
+       .transform('browserify-css')
+       .bundle()
+       //Pass desired output filename to vinyl-source-stream
+       .pipe(source('CoverageTemplates.js'))
+       // Start piping stream to tasks!
+       .pipe(gulp.dest('./dist/js/bundle'));
+});
+
+gulp.task('dev', ['browserifydev'], function() {
+    return gulp.src('./dist/js/bundle/CoverageTemplates.js')
         .pipe(gulp.dest('./target/classes/org/jenkins/ui/jsmodules/coverage-publisher'));
 });
