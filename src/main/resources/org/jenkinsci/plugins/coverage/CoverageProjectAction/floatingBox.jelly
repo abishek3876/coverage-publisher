@@ -1,8 +1,8 @@
-<!--<?jelly escape-by-default='true'?>--><!--TODO: Enabling this makes the JSON data wrong. Investigate-->
+<?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
          xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
          xmlns:f="/lib/form" xmlns:i="jelly:fmt">
     <div style="width: 600px" id="coverage"></div>
     <st:adjunct includes="org.jenkins.ui.jsmodules.coverage-publisher.CoverageTemplates"/>
-    <script type="text/javascript">renderCoverageTrend(true);</script>
+    <script type="text/javascript">renderCoverageTrend(${action.coverageTrend});</script>
 </j:jelly>

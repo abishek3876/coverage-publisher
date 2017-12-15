@@ -5,6 +5,7 @@ import hudson.model.Api;
 import hudson.model.Job;
 import hudson.model.Run;
 import org.jenkinsci.plugins.coverage.model.CoverageType;
+import org.json.JSONArray;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -35,7 +36,7 @@ public class CoverageProjectAction implements Action {
             Map<String, Serializable> coverageData = new HashMap<>();
             coverageData.put("Build", run.getDisplayName());
             for (CoverageType type : CoverageType.values()) {
-                float coveredPercent = CoverageThreshold.getCoveredPercent(runAction.getCoverageSummary().get(type));
+                float coveredPercent = CoverageThreshold.getCoveredPercent(runAction.coverageSummary.get(type));
                 coverageData.put(type.name(), Float.valueOf(String.format("%.1f", coveredPercent)));
             }
             coverageTrend.add(Collections.unmodifiableMap(coverageData));
@@ -61,5 +62,9 @@ public class CoverageProjectAction implements Action {
 
     public Api getApi() {
         return new Api(this);
+    }
+
+    public String getCoverageTrend() {
+        return new JSONArray(coverageTrend).toString();
     }
 }

@@ -205,7 +205,7 @@ public class CoveragePublisher extends Recorder implements SimpleBuildStep {
     private CoverageThreshold getDeltaThreshold(Run run, EnvVars envVars) {
         Run previousRun = run.getParent().getLastSuccessfulBuild();
         CoverageBuildAction previousAction = (previousRun == null)? null : previousRun.getAction(CoverageBuildAction.class);
-        Map<CoverageType, CoverageCounter> lastCoverage = (previousAction == null)? null : previousAction.getCoverageSummary();
+        Map<CoverageType, CoverageCounter> lastCoverage = (previousAction == null)? null : previousAction.coverageSummary;
 
         if (lastCoverage == null) {
             return new CoverageThreshold(envVars, "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");

@@ -8,17 +8,19 @@ import jenkins.model.RunAction2;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.plugins.coverage.model.CoverageCounter;
 import org.jenkinsci.plugins.coverage.model.CoverageType;
+import org.json.JSONObject;
 import org.kohsuke.stapler.StaplerProxy;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 public class CoverageBuildAction implements HealthReportingAction, StaplerProxy, RunAction2, SimpleBuildStep.LastBuildAction {
     /*package*/ static final String COVERAGE_ICON_FILE = "/plugin/coverage-publisher/icons/coverage.png";
     /*package*/ static final String COVERAGE_URL = "coverage";
 
-    private final Map<CoverageType, CoverageCounter> coverageSummary;
+    public final Map<CoverageType, CoverageCounter> coverageSummary;
     private final int healthScore;
     private Run<?,?> run;
 
@@ -63,7 +65,7 @@ public class CoverageBuildAction implements HealthReportingAction, StaplerProxy,
 
     @Override
     public ReportRenderer getTarget() {
-        return new ReportRenderer(run);
+        return new ReportRenderer(run, "");
     }
 
     @Override
@@ -71,7 +73,14 @@ public class CoverageBuildAction implements HealthReportingAction, StaplerProxy,
         return Collections.singleton(new CoverageProjectAction(this.run.getParent()));
     }
 
-    public Map<CoverageType, CoverageCounter> getCoverageSummary() {
-        return this.coverageSummary;
+    public String getCoverageSummary() {
+        JSONObject summary = new JSONObject();
+        for(Map.Entry<CoverageType, CoverageCounter> entry : this.coverageSummary.entrySet()) {
+            JSONObject coverage = new JSONObject();
+            coverage.put("covered", entry.getValue().getCovered());
+            coverage.put("missed", entry.getValue().getMissed());
+            summary.put(entry.getKey().name(), coverage);
+        }
+        return summary.toString();
     }
 }

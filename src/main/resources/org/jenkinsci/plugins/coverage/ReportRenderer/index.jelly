@@ -1,14 +1,13 @@
-<!--<?jelly escape-by-default='true'?>--><!--TODO: Enabling this makes the JSON data wrong. Investigate-->
+<?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
          xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
          xmlns:f="/lib/form">
     <l:layout>
         <st:include it="${it.run}" page="sidepanel.jelly" />
-        <st:adjunct includes="hudson.plugins.jquery.JQuery.header"/>
         <l:main-panel>
             <div id="coverage"></div>
         </l:main-panel>
         <st:adjunct includes="org.jenkins.ui.jsmodules.coverage-publisher.CoverageTemplates"/>
-        <script type="text/javascript">renderCoverageData();</script>
+        <script type="text/javascript">renderCoverageData(${it.coverageData});</script>
     </l:layout>
 </j:jelly>
