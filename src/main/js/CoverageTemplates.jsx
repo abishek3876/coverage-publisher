@@ -204,11 +204,13 @@ class CoverageData extends Component {
         }
     }
 
-    getBranchCounters(line) {
-        if (line[2] != 0 || line[3] != 0) {
+    getLineCounters(line, index) {
+        if (line[index] != 0 || line[index + 1] != 0) {
             return (
-                <td><span style={{color: color_good}}>{line[2]}</span>/<span style={{color: color_bad}}>{line[3]}</span></td>
+                <td style={{color: "#ae81ff"}}>{line[index]}/{line[index] + line[index + 1]}</td>
             );
+        } else {
+            return (<td></td>)
         }
     }
 
@@ -217,13 +219,22 @@ class CoverageData extends Component {
             var lineNo = 1;
             return (
                 <table className="coverage-code">
+                    <thead>
+                        <tr>
+                            <td title="Instruction Coverage">IC</td>
+                            <td title="Branch Coverage">BC</td>
+                            <td title="Line Number">LN</td>
+                            <td></td>
+                        </tr>
+                    </thead>
                     <tbody>
                     {
                         this.props.coverageData.sourceFile.map( line =>
                             <tr>
+                                {this.getLineCounters(line, 2)}
+                                {this.getLineCounters(line, 4)}
                                 <td style={{color: "rgba(255, 255, 255, 0.5)"}}>{lineNo++}</td>
                                 <td style={{backgroundColor: this.getBackgroundColor(line)}}>{line[0]}</td>
-                                {this.getBranchCounters(line)}
                             </tr>
                         )
                     }

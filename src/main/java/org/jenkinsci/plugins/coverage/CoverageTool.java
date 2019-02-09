@@ -16,6 +16,17 @@ public abstract class CoverageTool extends AbstractDescribableImpl<CoverageTool>
         return (CoverageToolDescriptor) super.getDescriptor();
     }
 
+    /**
+     * Process the coverage files based on the user input.
+     * This method is called on the workspace of the Jenkins Agent (as opposed to the master), so implementations can
+     * directly use file operations instead of having to rely on {@link FilePath}.
+     * @param envVars The environment variables present for the invocation of the tool.
+     * @param workspace The path to the workspace. Since this is called on the agent that it's running, implementations
+     *                  can also directly use workspace.getRemote() and use it for file operations.
+     * @param logger A print stream to use for printing logs and other output.
+     * @return A {@link ToolCoverage} object which contains the coverage information for this particular tool invocation.
+     * @throws Exception
+     */
     protected abstract ToolCoverage perform(EnvVars envVars, FilePath workspace, PrintStream logger) throws Exception;
 
     /**

@@ -4,7 +4,6 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.StringUtils;
 import org.jacoco.core.analysis.*;
 import org.jacoco.core.data.ExecutionDataReader;
 import org.jacoco.core.data.ExecutionDataStore;
@@ -42,7 +41,7 @@ public class JacocoCoverageTool extends CoverageTool {
     @DataBoundSetter
     public String excludePattern = "";
     @DataBoundSetter
-    public String coverageName = "";
+    public String coverageName = TOOL_NAME;
 
     @Override
     protected ToolCoverage perform(EnvVars envVars, FilePath workspace, PrintStream logger) throws Exception {
@@ -51,7 +50,7 @@ public class JacocoCoverageTool extends CoverageTool {
         List<FilePath> sourceDirs = Utils.resolveDirectories(sourcePattern, workspace, envVars);
         List<PackageCoverage> packageCoverages = getPackageCoverageList(sourceDirs, bundleCoverage);
 
-        String name = StringUtils.isEmpty(coverageName)? TOOL_NAME : coverageName;
+        String name = coverageName;
         return new ToolCoverage(name, packageCoverages);
     }
 
@@ -203,7 +202,7 @@ public class JacocoCoverageTool extends CoverageTool {
 
     @Override
     public String toString() {
-        return "jacoco:{sourcePattern: " + sourcePattern + ", classPattern: " + classPattern
+        return coverageName + ":{sourcePattern: " + sourcePattern + ", classPattern: " + classPattern
                 + ", execPattern: " + execPattern + ", includePattern: " + includePattern
                 + ", excludePattern: " + excludePattern + "}";
     }
